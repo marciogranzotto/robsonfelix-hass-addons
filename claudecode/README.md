@@ -1,6 +1,20 @@
 # Claude Code for Home Assistant
 
-This add-on provides Claude Code, Anthropic's AI-powered coding assistant, directly in your Home Assistant sidebar with full access to your configuration.
+Run [Claude Code](https://docs.anthropic.com/en/docs/claude-code), Anthropic's AI-powered coding assistant, directly in your Home Assistant sidebar with full access to your configuration.
+
+## Quick Start
+
+```bash
+claude "List all my automations"
+claude "Turn off all lights in the living room"
+claude "Create an automation to turn on lights at sunset"
+claude "Why isn't my motion sensor automation working?"
+```
+
+## Requirements
+
+- Home Assistant OS or Supervised installation
+- [Anthropic account](https://console.anthropic.com/) (authentication handled in terminal)
 
 ## Features
 

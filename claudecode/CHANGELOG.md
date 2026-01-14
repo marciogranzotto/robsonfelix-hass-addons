@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.2.30] - 2026-01-14
+
+### Changed
+- Reorganized documentation: DOCS.md renamed to README.md
+- Simplified root README.md
+- Added Quick Start and Requirements sections
+
+### Fixed
+- Added .bashrc with aliases (`c`, `cc`, `ha-config`, `ha-logs`) - they were documented but not working
+
+### Removed
+- Deleted unused run.sh (Dockerfile CMD has everything inline)
+
 ## [1.2.29] - 2026-01-14
 
 ### Fixed

@@ -74,6 +74,20 @@ bind -n WheelUpPane if-shell -F -t = "#{mouse_any_flag}" "send-keys -M" "if -Ft=
 bind -n WheelDownPane select-pane -t= \; send-keys -M
 EOF
 
+# Configure bash with aliases and prompt
+RUN cat > /root/.bashrc << 'EOF'
+export TERM=xterm-256color
+export LANG=C.UTF-8
+PS1='\[\033[1;36m\]claude-code\[\033[0m\]:\[\033[1;34m\]\w\[\033[0m\]\$ '
+
+# Aliases
+alias ll='ls -la'
+alias c='claude'
+alias cc='claude --continue'
+alias ha-config='cd /homeassistant'
+alias ha-logs='cat /homeassistant/home-assistant.log 2>/dev/null || echo "Log not found"'
+EOF
+
 # Set up PATH
 ENV PATH="/root/.local/bin:${PATH}"
 
