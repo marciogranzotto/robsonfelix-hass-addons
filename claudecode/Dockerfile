@@ -56,9 +56,12 @@ RUN mkdir -p \
 # Set up PATH
 ENV PATH="/root/.local/bin:${PATH}"
 
-# Copy and setup run script
+# Copy and setup run script - cache bust v1.2.9
 COPY run.sh /run.sh
-RUN sed -i 's/\r$//' /run.sh && chmod 755 /run.sh
+RUN sed -i 's/\r$//' /run.sh && \
+    chmod 755 /run.sh && \
+    ls -la /run.sh && \
+    head -1 /run.sh
 
 # Set working directory
 WORKDIR /homeassistant

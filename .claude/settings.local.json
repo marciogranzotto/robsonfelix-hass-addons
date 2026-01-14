@@ -19,7 +19,8 @@
       "WebFetch(domain:uxwing.com)",
       "Bash(git commit:*)",
       "Bash(gh repo rename:*)",
-      "Bash(xxd:*)"
+      "Bash(xxd:*)",
+      "WebFetch(domain:raw.githubusercontent.com)"
     ]
   }
 }
