@@ -62,8 +62,17 @@ RUN mkdir -p \
     /root/.config \
     /root/.local/bin
 
-# Configure tmux with large scrollback buffer
-RUN echo "set -g history-limit 20000" > /root/.tmux.conf
+# Configure tmux with large scrollback buffer and scroll support
+RUN cat > /root/.tmux.conf << 'EOF'
+set -g history-limit 20000
+# Disable alternate screen buffer to allow terminal scrollback
+set -ga terminal-overrides ',xterm*:smcup@:rmcup@'
+# Enable mouse support for scrolling (but may affect copy/paste)
+set -g mouse on
+# Bind mouse wheel to scroll through history in copy mode
+bind -n WheelUpPane if-shell -F -t = "#{mouse_any_flag}" "send-keys -M" "if -Ft= '#{pane_in_mode}' 'send-keys -M' 'select-pane -t=; copy-mode -e; send-keys -M'"
+bind -n WheelDownPane select-pane -t= \; send-keys -M
+EOF
 
 # Set up PATH
 ENV PATH="/root/.local/bin:${PATH}"

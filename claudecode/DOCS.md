@@ -111,8 +111,11 @@ If you're new to tmux:
 | Key | Action |
 |-----|--------|
 | `Ctrl+b d` | Detach from session (keeps it running) |
-| `Ctrl+b [` | Enter scroll mode (use arrow keys) |
-| `q` | Exit scroll mode |
+| `Ctrl+b [` | Enter scroll/copy mode (use arrow keys) |
+| Mouse wheel | Scroll up/down (auto-enters copy mode) |
+| `q` | Exit scroll/copy mode |
+| Middle-click | Paste from clipboard |
+| `Shift+Insert` | Paste from clipboard (alternative) |
 
 ### Scrolling and Session Persistence Trade-offs
 
@@ -120,18 +123,20 @@ If you're new to tmux:
 - ✅ Session survives browser refresh/disconnect
 - ✅ Can detach and reattach to running sessions
 - ✅ Long-running Claude tasks continue in background
-- ❌ Mouse wheel scrolling doesn't work
-- ❌ Must use `Ctrl+b [` then arrow keys to scroll
+- ✅ Mouse wheel scrolling works (enters copy mode automatically)
+- ✅ 20,000 line scrollback buffer
+- ⚠️ Use middle-click or Shift+Insert to paste (right-click paste may not work)
 
 **Without tmux (`session_persistence: false`):**
-- ✅ Mouse wheel scrolling may work (browser-native)
+- ✅ Native browser scrolling
 - ✅ Simpler terminal behavior
+- ✅ Standard copy/paste behavior
 - ❌ Session lost on browser refresh
 - ❌ Session lost if add-on restarts
 
 **Recommendation:**
 - Use `session_persistence: true` (default) if you run long tasks or need to survive disconnects
-- Use `session_persistence: false` if scrolling through output history is more important to you
+- Use `session_persistence: false` if you need standard copy/paste behavior
 
 ## Security
 

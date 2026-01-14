@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.2.24] - 2026-01-14
+
+### Added
+- Improved tmux mouse wheel scrolling support
+- Disable alternate screen buffer for better scrollback (`smcup@:rmcup@`)
+- Mouse wheel bindings for scrolling in tmux copy mode
+
+### Note
+- Mouse scrolling now enabled; use middle-click or Shift+Insert to paste
+
 ## [1.2.23] - 2026-01-14
 
 ### Added
