@@ -2,7 +2,81 @@
 
 All notable changes to this project will be documented in this file.
 
-## [1.2.0] - 2025-01-14
+## [1.2.13] - 2026-01-14
+
+### Fixed
+- Add PTY permissions to AppArmor profile (sys_tty_config, /dev/ptmx, /dev/pts/*)
+- Fixes "pty_spawn: Permission denied" error when spawning terminal
+
+## [1.2.12] - 2026-01-14
+
+### Fixed
+- Use static ttyd binary from GitHub releases instead of Alpine package
+- Fixes "failed to load evlib_uv" libwebsockets error
+
+## [1.2.11] - 2026-01-14
+
+### Changed
+- Simplified startup: run ttyd directly in CMD without script file
+- Minimal configuration for debugging startup issues
+
+## [1.2.10] - 2026-01-14
+
+### Fixed
+- Create run.sh inline via heredoc to avoid file permission issues
+
+## [1.2.9] - 2026-01-14
+
+### Fixed
+- Add .gitattributes to enforce LF line endings for shell scripts
+- Force Docker cache bust for permission fixes
+
+## [1.2.8] - 2026-01-14
+
+### Changed
+- Use Docker's tini init system (`init: true`) instead of s6-overlay
+- Simplified entrypoint configuration
+
+## [1.2.7] - 2026-01-14
+
+### Fixed
+- Use bash instead of bashio in s6-overlay run script
+- Add chmod +x /init to fix permission issues
+
+## [1.2.6] - 2026-01-14
+
+### Changed
+- Properly configure s6-overlay v3 service structure
+- Add service files in /etc/s6-overlay/s6-rc.d/ttyd
+
+## [1.2.5] - 2026-01-14
+
+### Changed
+- Attempted switch to pure Alpine base image (reverted due to HA format requirements)
+
+## [1.2.4] - 2026-01-14
+
+### Fixed
+- Set `init: false` for s6-overlay v3 compatibility
+
+## [1.2.3] - 2026-01-14
+
+### Fixed
+- Force bash entrypoint to bypass s6-overlay init issues
+
+## [1.2.2] - 2026-01-14
+
+### Fixed
+- Remove s6-overlay dependency, use plain bash with jq
+- Fixes "/init: Permission denied" startup error
+
+## [1.2.1] - 2026-01-14
+
+### Fixed
+- Corrected hass-mcp package name (was homeassistant-mcp)
+- Upgraded to Python 3.13 base image for hass-mcp compatibility
+
+## [1.2.0] - 2026-01-14
 
 ### Changed
 - **Security improvement**: Removed API key from add-on config - Claude Code now handles authentication itself
@@ -12,7 +86,7 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 - Docker build failure due to BUILD_ARCH variable not being passed correctly
 
-## [1.1.0] - 2025-01-14
+## [1.1.0] - 2026-01-14
 
 ### Added
 - Model selection option (sonnet, opus, haiku)
@@ -33,7 +107,7 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 - Proper ingress base path handling
 
-## [1.0.0] - 2025-01-14
+## [1.0.0] - 2026-01-14
 
 ### Added
 - Initial release
