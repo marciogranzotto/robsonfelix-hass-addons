@@ -1,4 +1,4 @@
-#!/usr/bin/with-contenv bashio
+#!/bin/bash
 # shellcheck shell=bash
 
 # ==============================================================================
@@ -14,12 +14,24 @@ set -e
 
 CONFIG_PATH="/data/options.json"
 
-# Read configuration values using bashio
-ENABLE_MCP=$(bashio::config 'enable_mcp')
-TERMINAL_FONT_SIZE=$(bashio::config 'terminal_font_size')
-TERMINAL_THEME=$(bashio::config 'terminal_theme')
-WORKING_DIR=$(bashio::config 'working_directory')
-SESSION_PERSISTENCE=$(bashio::config 'session_persistence')
+# Read configuration values using jq
+ENABLE_MCP=$(jq -r '.enable_mcp // true' "$CONFIG_PATH")
+TERMINAL_FONT_SIZE=$(jq -r '.terminal_font_size // 14' "$CONFIG_PATH")
+TERMINAL_THEME=$(jq -r '.terminal_theme // "dark"' "$CONFIG_PATH")
+WORKING_DIR=$(jq -r '.working_directory // "/homeassistant"' "$CONFIG_PATH")
+SESSION_PERSISTENCE=$(jq -r '.session_persistence // true' "$CONFIG_PATH")
+
+# -----------------------------------------------------------------------------
+# Logging Helper
+# -----------------------------------------------------------------------------
+
+log_info() {
+    echo "[INFO] $1"
+}
+
+log_warning() {
+    echo "[WARNING] $1"
+}
 
 # -----------------------------------------------------------------------------
 # Validation
@@ -27,14 +39,14 @@ SESSION_PERSISTENCE=$(bashio::config 'session_persistence')
 
 # Verify working directory exists
 if [[ ! -d "${WORKING_DIR}" ]]; then
-    bashio::log.warning "Working directory ${WORKING_DIR} does not exist."
-    bashio::log.warning "Falling back to /homeassistant"
+    log_warning "Working directory ${WORKING_DIR} does not exist."
+    log_warning "Falling back to /homeassistant"
     WORKING_DIR="/homeassistant"
 fi
 
 # Verify supervisor token for hass-mcp
-if bashio::var.true "${ENABLE_MCP}" && [[ -z "${SUPERVISOR_TOKEN:-}" ]]; then
-    bashio::log.warning "Supervisor token not available. hass-mcp may not function correctly."
+if [[ "${ENABLE_MCP}" == "true" ]] && [[ -z "${SUPERVISOR_TOKEN:-}" ]]; then
+    log_warning "Supervisor token not available. hass-mcp may not function correctly."
 fi
 
 # -----------------------------------------------------------------------------
@@ -56,11 +68,11 @@ export HASS_TOKEN="${SUPERVISOR_TOKEN}"
 # -----------------------------------------------------------------------------
 
 setup_mcp_config() {
-    bashio::log.info "Configuring Claude Code MCP servers..."
+    log_info "Configuring Claude Code MCP servers..."
 
     mkdir -p /root/.claude
 
-    if bashio::var.true "${ENABLE_MCP}"; then
+    if [[ "${ENABLE_MCP}" == "true" ]]; then
         cat > /root/.claude/settings.json << EOF
 {
   "mcpServers": {
@@ -74,10 +86,10 @@ setup_mcp_config() {
   }
 }
 EOF
-        bashio::log.info "Home Assistant MCP server configured"
+        log_info "Home Assistant MCP server configured"
     else
         echo '{}' > /root/.claude/settings.json
-        bashio::log.info "MCP servers disabled"
+        log_info "MCP servers disabled"
     fi
 }
 
@@ -121,7 +133,6 @@ alias cc='claude --continue'
 # Home Assistant helpers
 alias ha-config='cd /homeassistant'
 alias ha-logs='cat /homeassistant/home-assistant.log 2>/dev/null || echo "Log not found"'
-alias ha-check='python3 -m homeassistant --script check_config -c /homeassistant'
 
 BASHRC
 
@@ -141,7 +152,7 @@ echo ""
 echo "  Working directory: ${WORKING_DIR}"
 EOF
 
-    if bashio::var.true "${ENABLE_MCP}"; then
+    if [[ "${ENABLE_MCP}" == "true" ]]; then
         cat >> /root/.profile << 'EOF'
 echo "  Home Assistant MCP: enabled"
 EOF
@@ -168,20 +179,20 @@ EOF
 # -----------------------------------------------------------------------------
 
 main() {
-    bashio::log.info "========================================"
-    bashio::log.info "  Claude Code Add-on Starting"
-    bashio::log.info "========================================"
-    bashio::log.info ""
-    bashio::log.info "Configuration:"
-    bashio::log.info "  MCP enabled: ${ENABLE_MCP}"
-    bashio::log.info "  Working directory: ${WORKING_DIR}"
-    bashio::log.info "  Terminal theme: ${TERMINAL_THEME}"
-    bashio::log.info "  Font size: ${TERMINAL_FONT_SIZE}"
-    bashio::log.info "  Session persistence: ${SESSION_PERSISTENCE}"
-    bashio::log.info ""
-    bashio::log.info "Note: Claude Code will prompt for authentication on first use."
-    bashio::log.info "Your credentials are stored securely by Claude Code itself."
-    bashio::log.info ""
+    log_info "========================================"
+    log_info "  Claude Code Add-on Starting"
+    log_info "========================================"
+    log_info ""
+    log_info "Configuration:"
+    log_info "  MCP enabled: ${ENABLE_MCP}"
+    log_info "  Working directory: ${WORKING_DIR}"
+    log_info "  Terminal theme: ${TERMINAL_THEME}"
+    log_info "  Font size: ${TERMINAL_FONT_SIZE}"
+    log_info "  Session persistence: ${SESSION_PERSISTENCE}"
+    log_info ""
+    log_info "Note: Claude Code will prompt for authentication on first use."
+    log_info "Your credentials are stored securely by Claude Code itself."
+    log_info ""
 
     # Setup configurations
     setup_mcp_config
@@ -190,17 +201,13 @@ main() {
     # Change to working directory
     cd "${WORKING_DIR}" || cd /homeassistant
 
-    # Get ingress entry for base path
-    INGRESS_ENTRY=$(bashio::addon.ingress_entry)
-
     # Build ttyd command
     TTYD_THEME=$(get_ttyd_theme)
 
-    bashio::log.info "Starting ttyd web terminal..."
-    bashio::log.info "Access Claude Code via the Home Assistant sidebar."
+    log_info "Starting ttyd web terminal..."
 
     # Determine shell command based on session persistence
-    if bashio::var.true "${SESSION_PERSISTENCE}"; then
+    if [[ "${SESSION_PERSISTENCE}" == "true" ]]; then
         # Use tmux for session persistence
         SHELL_CMD="tmux new-session -A -s claude"
     else
@@ -211,7 +218,6 @@ main() {
     exec ttyd \
         --port 7681 \
         --writable \
-        --base-path "${INGRESS_ENTRY}" \
         --ping-interval 30 \
         --max-clients 5 \
         -t "fontSize=${TERMINAL_FONT_SIZE}" \

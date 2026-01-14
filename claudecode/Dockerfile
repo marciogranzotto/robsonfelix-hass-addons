@@ -12,9 +12,7 @@ LABEL org.opencontainers.image.licenses="MIT"
 ENV \
     LANG=C.UTF-8 \
     LC_ALL=C.UTF-8 \
-    TERM=xterm-256color \
-    S6_BEHAVIOUR_IF_STAGE2_FAILS=2 \
-    S6_CMD_WAIT_FOR_SERVICES_MAXTIME=0
+    TERM=xterm-256color
 
 # Install system dependencies including ttyd from Alpine packages
 RUN apk add --no-cache \
@@ -60,11 +58,8 @@ RUN mkdir -p \
 # Set up PATH
 ENV PATH="/root/.local/bin:${PATH}"
 
-# Copy root filesystem overlay (s6-overlay services)
-COPY rootfs /
-
 # Copy run script
-COPY run.sh /run.sh
+COPY run.sh /
 RUN chmod a+x /run.sh
 
 # Set working directory
@@ -74,4 +69,5 @@ WORKDIR /homeassistant
 HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
     CMD curl -sf http://localhost:7681/ || exit 1
 
+ENTRYPOINT []
 CMD [ "/run.sh" ]
