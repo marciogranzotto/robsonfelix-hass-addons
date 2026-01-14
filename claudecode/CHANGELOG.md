@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.2.38] - 2026-01-14
+
+### Added
+- Pre-authorized read-only hass-mcp tools (no confirmation needed):
+  - `get_version`, `get_entity`, `list_entities`, `search_entities_tool`
+  - `domain_summary_tool`, `list_automations`, `get_history`, `get_error_log`
+- Pre-authorized file read operations:
+  - `Read`, `Glob`, `Grep` for `/homeassistant/**`, `/config/**`, `/share/**`, `/media/**`
+- Write operations still require confirmation: `entity_action`, `call_service_tool`, `restart_ha`
+
 ## [1.2.37] - 2026-01-14
 
 ### Added
