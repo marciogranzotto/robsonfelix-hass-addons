@@ -69,3 +69,8 @@ WORKDIR /homeassistant
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
     CMD curl -sf http://localhost:7681/ || exit 1
+
+# Ensure /init is executable (fix permission issues)
+RUN chmod +x /init 2>/dev/null || true
+
+ENTRYPOINT ["/init"]
