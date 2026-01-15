@@ -9,6 +9,7 @@ Custom add-ons for Home Assistant.
 | Add-on | Description |
 |--------|-------------|
 | [Claude Code](claudecode/) | AI assistant for automations, debugging, and smart home management |
+| [Auto-Monocle](auto-monocle/) | Auto-discover HA cameras and expose to Alexa via Monocle Gateway |
 
 ## Installation
 

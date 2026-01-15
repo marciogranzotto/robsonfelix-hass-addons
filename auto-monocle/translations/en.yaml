@@ -1,0 +1,25 @@
+configuration:
+  monocle_token:
+    name: Monocle API Token
+    description: >-
+      Your Monocle API token from monoclecam.com dashboard.
+      Required for authentication with Monocle cloud service.
+  auto_discover:
+    name: Auto-Discover Cameras
+    description: >-
+      Automatically discover camera entities from Home Assistant.
+      Uses friendly names and RTSP stream URLs.
+  refresh_interval:
+    name: Refresh Interval
+    description: >-
+      How often to refresh the camera list (in seconds).
+      Lower values detect new cameras faster but use more resources.
+  camera_filters:
+    name: Camera Filters
+    description: >-
+      Optional list of filters to limit which cameras are discovered.
+      Enter camera names or entity IDs to match.
+
+network:
+  443/tcp: Monocle Gateway HTTPS (required)
+  8443/tcp: Monocle Gateway Secure WebSocket
