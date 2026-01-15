@@ -90,8 +90,9 @@ def get_go2rtc_streams() -> Dict[str, str]:
 # Method 2: UniFi Protect integration (reads from HA storage files)
 # =============================================================================
 
-def get_unifi_protect_config() -> Optional[Tuple[str, int]]:
-    """Get UniFi Protect NVR IP from config entries (storage file or API)."""
+def get_unifi_protect_config() -> Optional[Dict]:
+    """Get UniFi Protect NVR config from config entries (storage file or API)."""
+    from urllib.parse import quote
 
     # Try reading from storage file first (more reliable - contains full data)
     config_data = read_storage_file("core.config_entries")
@@ -115,11 +116,21 @@ def get_unifi_protect_config() -> Optional[Tuple[str, int]]:
             print(f"[DEBUG] Found UniFi Protect entry: domain={domain}")
             data = entry.get("data", {})
             host = data.get("host") or data.get("ip") or data.get("address")
+            username = data.get("username", "")
+            password = data.get("password", "")
             # RTSP port is 7441 for secure, 7447 for insecure
             port = 7441
             if host:
                 print(f"[INFO] Found UniFi Protect NVR: {host}:{port}")
-                return (host, port)
+                # URL-encode credentials (password may have special chars)
+                encoded_user = quote(username, safe='') if username else ""
+                encoded_pass = quote(password, safe='') if password else ""
+                return {
+                    "host": host,
+                    "port": port,
+                    "username": encoded_user,
+                    "password": encoded_pass
+                }
 
     print("[DEBUG] No UniFi Protect config entry found")
     return None
@@ -213,7 +224,11 @@ def get_unifi_rtsp_urls(stream_quality: str = "high") -> Dict[str, str]:
         print("[INFO] UniFi Protect integration not found")
         return urls
 
-    host, port = nvr_config
+    host = nvr_config["host"]
+    port = nvr_config["port"]
+    username = nvr_config["username"]
+    password = nvr_config["password"]
+
     cameras = get_unifi_camera_info_from_entities(stream_quality)
 
     for entity_id, cam_info in cameras.items():
@@ -221,12 +236,17 @@ def get_unifi_rtsp_urls(stream_quality: str = "high") -> Dict[str, str]:
         channel = cam_info["channel"]
         name = cam_info["name"]
 
-        # UniFi Protect RTSP URL format:
-        # rtsps://NVR_IP:7441/MAC_ADDRESS?channel=N
+        # UniFi Protect RTSP URL format with authentication:
+        # rtsps://username:password@NVR_IP:7441/MAC_ADDRESS?channel=N
         # channel 0 = high, 1 = medium, 2 = low
-        rtsp_url = f"rtsps://{host}:{port}/{mac}?channel={channel}"
+        if username and password:
+            rtsp_url = f"rtsps://{username}:{password}@{host}:{port}/{mac}?channel={channel}"
+        else:
+            rtsp_url = f"rtsps://{host}:{port}/{mac}?channel={channel}"
+
         urls[entity_id] = rtsp_url
-        print(f"[INFO] UniFi RTSP: {name} -> {rtsp_url}")
+        # Don't log credentials
+        print(f"[INFO] UniFi RTSP: {name} -> rtsps://***@{host}:{port}/{mac}?channel={channel}")
 
     return urls
 

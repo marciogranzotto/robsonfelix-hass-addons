@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.10] - 2026-01-14
+
+### Fixed
+- UniFi Protect: Include authentication in RTSP URLs (username:password from HA config)
+- Credentials are URL-encoded to handle special characters
+
 ## [0.1.9] - 2026-01-14
 
 ### Added
