@@ -8,9 +8,9 @@ configuration:
   enable_playwright_mcp:
     name: Enable Playwright MCP
     description: >-
-      Enable the Playwright MCP server for browser automation. Allows Claude to
-      navigate web pages, fill forms, click elements, and take screenshots using
-      headless Chromium. Disabled by default due to increased resource usage.
+      Enable the Playwright MCP server for browser automation. Requires the
+      "Playwright Browser" add-on to be installed and running. Allows Claude to
+      navigate web pages, fill forms, click elements, and take screenshots.
   terminal_font_size:
     name: Terminal Font Size
     description: >-

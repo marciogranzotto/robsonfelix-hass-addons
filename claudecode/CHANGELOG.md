@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.2.48] - 2026-01-15
+
+### Changed
+- Playwright MCP now connects to external "Playwright Browser" add-on via CDP
+- Removed Chromium from this add-on (keeps image small ~100MB vs ~2GB)
+- Alpine + Chromium sandbox issues resolved by using separate Ubuntu-based add-on
+
+### Note
+- Requires "Playwright Browser" add-on to be installed and running for browser automation
+
 ## [1.2.47] - 2026-01-15
 
 ### Fixed

@@ -8,10 +8,10 @@ configuration:
   enable_playwright_mcp:
     name: Habilitar MCP Playwright
     description: >-
-      Habilita o servidor MCP Playwright para automação de navegador. Permite que
-      o Claude navegue em páginas web, preencha formulários, clique em elementos
-      e tire screenshots usando Chromium headless. Desabilitado por padrão devido
-      ao maior uso de recursos.
+      Habilita o servidor MCP Playwright para automação de navegador. Requer o
+      add-on "Playwright Browser" instalado e em execução. Permite que o Claude
+      navegue em páginas web, preencha formulários, clique em elementos e tire
+      screenshots.
   terminal_font_size:
     name: Tamanho da Fonte do Terminal
     description: >-
