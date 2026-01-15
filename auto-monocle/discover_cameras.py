@@ -81,6 +81,14 @@ def discover_cameras(filters: List[str] = None) -> List[Dict]:
         attrs = state.get("attributes", {})
         friendly_name = attrs.get("friendly_name", entity_id.replace("camera.", "").replace("_", " ").title())
 
+        # Debug: print all attributes for first few cameras
+        if len(cameras) < 3:
+            print(f"[DEBUG] {entity_id} attributes: {list(attrs.keys())}")
+            # Look for any URL-like attributes
+            for key, value in attrs.items():
+                if isinstance(value, str) and ('rtsp' in value.lower() or 'stream' in value.lower() or '://' in value):
+                    print(f"[DEBUG]   {key}: {value}")
+
         # Get stream URL
         stream_url = get_camera_stream_url(entity_id)
 
