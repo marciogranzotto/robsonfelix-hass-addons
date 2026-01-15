@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.11] - 2026-01-14
+
+### Fixed
+- UniFi Protect: Query NVR API directly to get correct `rtspAlias` stream tokens
+- RTSP URLs now use proper format: `rtsps://NVR:7441/rtspAlias` (no auth in URL needed)
+- Fallback to MAC-based URLs if API query fails
+
 ## [0.1.10] - 2026-01-14
 
 ### Fixed

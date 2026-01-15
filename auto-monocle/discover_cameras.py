@@ -216,12 +216,109 @@ def get_unifi_camera_info_from_entities(stream_quality: str = "high") -> Dict[st
 
 
 def get_unifi_rtsp_urls(stream_quality: str = "high") -> Dict[str, str]:
-    """Construct RTSP URLs for UniFi Protect cameras using entity registry."""
+    """Get RTSP URLs from UniFi Protect API using rtspAlias."""
+    import ssl
+    import urllib.request
+    import http.cookiejar
+    from urllib.parse import unquote
+
     urls = {}
+    quality_to_channel = {"high": 0, "medium": 1, "low": 2}
+    target_channel = quality_to_channel.get(stream_quality, 0)
 
     nvr_config = get_unifi_protect_config()
     if not nvr_config:
         print("[INFO] UniFi Protect integration not found")
+        return urls
+
+    host = nvr_config["host"]
+    port = nvr_config["port"]
+    username = unquote(nvr_config["username"])  # Decode for API auth
+    password = unquote(nvr_config["password"])
+
+    print(f"[INFO] Querying UniFi Protect API for camera streams (quality: {stream_quality})...")
+
+    # Get device names from HA device registry
+    device_names = {}
+    device_data = read_storage_file("core.device_registry")
+    if device_data:
+        for dev in device_data.get("data", {}).get("devices", []):
+            # Map MAC to device name
+            for conn in dev.get("connections", []):
+                if isinstance(conn, list) and len(conn) >= 2 and conn[0] == "mac":
+                    mac = conn[1].upper().replace(":", "")
+                    name = dev.get("name_by_user") or dev.get("name")
+                    if mac and name:
+                        device_names[mac] = name
+
+    try:
+        # SSL context (ignore cert verification like HA does)
+        ctx = ssl.create_default_context()
+        ctx.check_hostname = False
+        ctx.verify_mode = ssl.CERT_NONE
+
+        cj = http.cookiejar.CookieJar()
+        opener = urllib.request.build_opener(
+            urllib.request.HTTPSHandler(context=ctx),
+            urllib.request.HTTPCookieProcessor(cj)
+        )
+
+        # Authenticate
+        auth_url = f"https://{host}/api/auth/login"
+        auth_data = json.dumps({"username": username, "password": password}).encode()
+        req = urllib.request.Request(auth_url, data=auth_data, method='POST')
+        req.add_header('Content-Type', 'application/json')
+        opener.open(req, timeout=10)
+
+        # Get bootstrap (contains all cameras)
+        bootstrap_url = f"https://{host}/proxy/protect/api/bootstrap"
+        req = urllib.request.Request(bootstrap_url)
+        with opener.open(req, timeout=30) as resp:
+            bootstrap = json.loads(resp.read())
+
+        cameras = bootstrap.get("cameras", [])
+        print(f"[INFO] Found {len(cameras)} cameras in UniFi Protect")
+
+        for cam in cameras:
+            cam_id = cam.get("id", "")
+            mac = cam.get("mac", "").upper()
+            cam_name = device_names.get(mac) or cam.get("name", cam_id)
+
+            # Get rtspAlias for the target channel
+            channels = cam.get("channels", [])
+            rtsp_alias = None
+            for ch in channels:
+                if ch.get("id") == target_channel:
+                    rtsp_alias = ch.get("rtspAlias")
+                    break
+
+            if rtsp_alias:
+                # RTSP URL format: rtsps://host:7441/rtspAlias
+                # Auth is handled via the rtspAlias token, no user/pass needed in URL
+                rtsp_url = f"rtsps://{host}:{port}/{rtsp_alias}"
+                urls[f"camera.{cam_name.lower().replace(' ', '_')}"] = {
+                    "name": cam_name,
+                    "url": rtsp_url
+                }
+                print(f"[INFO] UniFi RTSP: {cam_name} -> rtsps://{host}:{port}/{rtsp_alias}")
+            else:
+                print(f"[WARN] No rtspAlias for {cam_name} channel {target_channel}")
+
+    except Exception as e:
+        print(f"[ERROR] Failed to query UniFi Protect API: {e}")
+        # Fall back to MAC-based URLs
+        print("[INFO] Falling back to MAC-based RTSP URLs...")
+        return get_unifi_rtsp_urls_fallback(stream_quality)
+
+    return urls
+
+
+def get_unifi_rtsp_urls_fallback(stream_quality: str = "high") -> Dict[str, str]:
+    """Fallback: Construct RTSP URLs using MAC addresses (may not work on all setups)."""
+    urls = {}
+
+    nvr_config = get_unifi_protect_config()
+    if not nvr_config:
         return urls
 
     host = nvr_config["host"]
@@ -236,17 +333,12 @@ def get_unifi_rtsp_urls(stream_quality: str = "high") -> Dict[str, str]:
         channel = cam_info["channel"]
         name = cam_info["name"]
 
-        # UniFi Protect RTSP URL format with authentication:
-        # rtsps://username:password@NVR_IP:7441/MAC_ADDRESS?channel=N
-        # channel 0 = high, 1 = medium, 2 = low
         if username and password:
             rtsp_url = f"rtsps://{username}:{password}@{host}:{port}/{mac}?channel={channel}"
         else:
             rtsp_url = f"rtsps://{host}:{port}/{mac}?channel={channel}"
 
-        urls[entity_id] = rtsp_url
-        # Don't log credentials
-        print(f"[INFO] UniFi RTSP: {name} -> rtsps://***@{host}:{port}/{mac}?channel={channel}")
+        urls[entity_id] = {"name": name, "url": rtsp_url}
 
     return urls
 
@@ -345,27 +437,37 @@ def discover_cameras(filters: List[str] = None, stream_quality: str = "high") ->
                 print(f"[INFO] Matched go2rtc stream '{stream_name}' to {entity_id}")
                 break
 
-    # Method 2: Try UniFi Protect (uses entity_id as key)
+    # Method 2: Try UniFi Protect (queries API for rtspAlias)
     print("[INFO] Checking UniFi Protect integration...")
-    unifi_urls = get_unifi_rtsp_urls(stream_quality)
-    for unifi_entity_id, rtsp_url in unifi_urls.items():
-        # Direct match by entity_id
-        if unifi_entity_id in discovered:
-            if not discovered[unifi_entity_id]["stream_url"]:
-                discovered[unifi_entity_id]["stream_url"] = rtsp_url
-                print(f"[INFO] Matched UniFi camera {unifi_entity_id}")
-        else:
-            # Try fuzzy matching if entity wasn't in discovered list
-            for entity_id, camera in discovered.items():
-                if camera["stream_url"]:
-                    continue
-                # Match by base entity name (without _high suffix)
-                base_unifi = unifi_entity_id.replace("camera.", "").replace("_high", "")
-                base_entity = entity_id.replace("camera.", "").replace("_high", "")
-                if base_unifi == base_entity:
-                    camera["stream_url"] = rtsp_url
-                    print(f"[INFO] Fuzzy matched UniFi {unifi_entity_id} to {entity_id}")
-                    break
+    unifi_cameras = get_unifi_rtsp_urls(stream_quality)
+    for unifi_key, cam_data in unifi_cameras.items():
+        cam_name = cam_data["name"]
+        rtsp_url = cam_data["url"]
+
+        # Try to match to existing HA camera entity
+        matched = False
+        for entity_id, camera in discovered.items():
+            if camera["stream_url"]:
+                continue
+            # Match by name similarity
+            entity_name = camera["name"].lower()
+            unifi_name = cam_name.lower()
+            if (unifi_name in entity_name or entity_name in unifi_name or
+                unifi_name.replace(" ", "_") in entity_id.lower()):
+                camera["stream_url"] = rtsp_url
+                print(f"[INFO] Matched UniFi '{cam_name}' to {entity_id}")
+                matched = True
+                break
+
+        # If no match found, add as new camera
+        if not matched:
+            new_entity_id = f"camera.unifi_{cam_name.lower().replace(' ', '_')}"
+            discovered[new_entity_id] = {
+                "entity_id": new_entity_id,
+                "name": cam_name,
+                "stream_url": rtsp_url
+            }
+            print(f"[INFO] Added UniFi camera: {cam_name}")
 
     # Method 3: Check entity attributes
     print("[INFO] Checking camera entity attributes...")
