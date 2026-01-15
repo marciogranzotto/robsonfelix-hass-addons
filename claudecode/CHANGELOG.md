@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.2.41] - 2026-01-14
+
+### Added
+- Installed Home Assistant CLI (`ha` command) in the container
+- `ha core logs`, `ha core restart`, etc. now available
+
 ## [1.2.40] - 2026-01-14
 
 ### Fixed

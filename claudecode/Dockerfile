@@ -56,6 +56,17 @@ RUN npm install -g @anthropic-ai/claude-code
 # Install hass-mcp for Home Assistant integration
 RUN pip3 install --no-cache-dir --break-system-packages hass-mcp
 
+# Install Home Assistant CLI (ha command)
+RUN case "${BUILD_ARCH}" in \
+        amd64) HA_ARCH="amd64" ;; \
+        aarch64) HA_ARCH="aarch64" ;; \
+        armv7|armhf) HA_ARCH="armhf" ;; \
+        i386) HA_ARCH="i386" ;; \
+        *) HA_ARCH="amd64" ;; \
+    esac && \
+    curl -fsSL "https://github.com/home-assistant/cli/releases/latest/download/ha_${HA_ARCH}" -o /usr/local/bin/ha && \
+    chmod +x /usr/local/bin/ha
+
 # Create necessary directories (NOT /root/.claude - will be symlinked at runtime)
 RUN mkdir -p \
     /homeassistant \
@@ -144,17 +155,17 @@ CMD ["/bin/bash", "-c", "\
     '' \
     '**Commands to read logs:**' \
     '\\`\\`\\`bash' \
-    '# View recent logs (from log file)' \
-    'tail -100 /homeassistant/home-assistant.log' \
+    '# View recent logs (ha CLI)' \
+    'ha core logs 2>&1 | tail -100' \
     '' \
     '# Filter by keyword' \
-    'grep -i asterisk /homeassistant/home-assistant.log | tail -50' \
+    'ha core logs 2>&1 | grep -i keyword' \
     '' \
     '# Filter errors only' \
-    'grep -iE \"(error|exception)\" /homeassistant/home-assistant.log | tail -50' \
+    'ha core logs 2>&1 | grep -iE \"(error|exception)\"' \
     '' \
-    '# Via Supervisor API (real-time)' \
-    'curl -sH \"Authorization: Bearer $SUPERVISOR_TOKEN\" http://supervisor/core/api/error_log' \
+    '# Alternative: read log file directly' \
+    'tail -100 /homeassistant/home-assistant.log' \
     '\\`\\`\\`' \
     '' \
     '**To enable debug logging for an integration**, add to \\`configuration.yaml\\`:' \
