@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.2.42] - 2026-01-14
+
+### Added
+- `hassio_role: homeassistant` permission for reading core logs
+- Fixes 403 error when using `ha core logs`
+
 ## [1.2.41] - 2026-01-14
 
 ### Added
