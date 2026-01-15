@@ -1,51 +1,75 @@
-#!/bin/bash
+#!/usr/bin/with-contenv bashio
 set -e
 
 echo "========================================"
 echo "  Auto-Monocle Add-on Starting"
 echo "========================================"
 
-CONFIG_PATH="/data/options.json"
 MONOCLE_CONFIG="/etc/monocle/monocle.json"
 
 # Read configuration
-MONOCLE_TOKEN=$(jq -r '.monocle_token // ""' "$CONFIG_PATH")
-AUTO_DISCOVER=$(jq -r '.auto_discover // true' "$CONFIG_PATH")
-REFRESH_INTERVAL=$(jq -r '.refresh_interval // 300' "$CONFIG_PATH")
+MONOCLE_TOKEN=$(bashio::config 'monocle_token')
+AUTO_DISCOVER=$(bashio::config 'auto_discover')
+REFRESH_INTERVAL=$(bashio::config 'refresh_interval')
 
 if [ -z "$MONOCLE_TOKEN" ] || [ "$MONOCLE_TOKEN" = "null" ]; then
-    echo "[ERROR] Monocle token not configured!"
-    echo "[ERROR] Get your token from https://monoclecam.com and add it to the add-on configuration."
+    bashio::log.error "Monocle token not configured!"
+    bashio::log.error "Get your token from https://monoclecam.com and add it to the add-on configuration."
     exit 1
 fi
 
-# Run camera discovery
-echo "[INFO] Running camera discovery..."
-python3 /opt/monocle/discover_cameras.py
+# Run initial camera discovery if enabled
+if [ "$AUTO_DISCOVER" = "true" ]; then
+    bashio::log.info "Running camera discovery..."
+    python3 /opt/monocle/discover_cameras.py
 
-if [ ! -f "$MONOCLE_CONFIG" ]; then
-    echo "[ERROR] Monocle configuration not generated!"
-    exit 1
+    if [ ! -f "$MONOCLE_CONFIG" ]; then
+        bashio::log.error "Monocle configuration not generated!"
+        exit 1
+    fi
+
+    bashio::log.info "Monocle configuration:"
+    cat "$MONOCLE_CONFIG"
+    echo ""
+else
+    bashio::log.info "Auto-discovery disabled, using manual configuration"
 fi
 
-echo "[INFO] Monocle configuration:"
-cat "$MONOCLE_CONFIG"
-echo ""
+# Get initial config hash
+CONFIG_HASH=$(md5sum "$MONOCLE_CONFIG" 2>/dev/null | cut -d' ' -f1 || echo "none")
 
-# Start camera refresh in background
+# Start camera refresh in background (restarts gateway on changes)
 if [ "$AUTO_DISCOVER" = "true" ]; then
     (
         while true; do
             sleep "$REFRESH_INTERVAL"
-            echo "[INFO] Refreshing camera list..."
+            bashio::log.info "Refreshing camera list..."
             python3 /opt/monocle/discover_cameras.py
+
+            # Check if config changed
+            NEW_HASH=$(md5sum "$MONOCLE_CONFIG" 2>/dev/null | cut -d' ' -f1 || echo "none")
+            if [ "$NEW_HASH" != "$CONFIG_HASH" ]; then
+                bashio::log.info "Camera configuration changed, restarting Monocle Gateway..."
+                CONFIG_HASH="$NEW_HASH"
+                pkill -f monocle-gateway || true
+                sleep 2
+                cd /opt/monocle
+                ./monocle-gateway &
+                bashio::log.info "Monocle Gateway restarted"
+            else
+                bashio::log.info "No camera changes detected"
+            fi
         done
     ) &
 fi
 
-echo "[INFO] Starting Monocle Gateway..."
-echo "[INFO] Make sure port 443 is forwarded to this add-on"
+bashio::log.info "Starting Monocle Gateway..."
+bashio::log.info "Make sure port 443 is forwarded to this add-on"
 
-# Start Monocle Gateway
+# Start Monocle Gateway (in foreground to keep container alive)
 cd /opt/monocle
-exec ./monocle-gateway
+./monocle-gateway &
+GATEWAY_PID=$!
+
+# Wait for gateway process
+wait $GATEWAY_PID

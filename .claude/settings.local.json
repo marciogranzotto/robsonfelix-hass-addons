@@ -25,7 +25,8 @@
       "WebFetch(domain:api.iconify.design)",
       "WebFetch(domain:hub.docker.com)",
       "Bash(curl:*)",
-      "Bash(tar:*)"
+      "Bash(tar:*)",
+      "WebFetch(domain:monoclecam.com)"
     ]
   }
 }

@@ -12,8 +12,8 @@ configuration:
   refresh_interval:
     name: Refresh Interval
     description: >-
-      How often to refresh the camera list (in seconds).
-      Lower values detect new cameras faster but use more resources.
+      How often to check for new cameras (in seconds).
+      Gateway automatically restarts when cameras change.
   camera_filters:
     name: Camera Filters
     description: >-
