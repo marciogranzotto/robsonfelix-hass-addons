@@ -144,14 +144,17 @@ CMD ["/bin/bash", "-c", "\
     '' \
     '**Commands to read logs:**' \
     '\\`\\`\\`bash' \
-    '# View recent logs' \
-    'ha core logs 2>&1 | tail -100' \
+    '# View recent logs (from log file)' \
+    'tail -100 /homeassistant/home-assistant.log' \
     '' \
     '# Filter by keyword' \
-    'ha core logs 2>&1 | grep -i asterisk' \
+    'grep -i asterisk /homeassistant/home-assistant.log | tail -50' \
     '' \
     '# Filter errors only' \
-    'ha core logs 2>&1 | grep -iE \"(error|exception)\"' \
+    'grep -iE \"(error|exception)\" /homeassistant/home-assistant.log | tail -50' \
+    '' \
+    '# Via Supervisor API (real-time)' \
+    'curl -sH \"Authorization: Bearer $SUPERVISOR_TOKEN\" http://supervisor/core/api/error_log' \
     '\\`\\`\\`' \
     '' \
     '**To enable debug logging for an integration**, add to \\`configuration.yaml\\`:' \

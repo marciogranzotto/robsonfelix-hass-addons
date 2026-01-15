@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.2.40] - 2026-01-14
+
+### Fixed
+- Updated log commands in CLAUDE.md (`ha` CLI not available in add-on containers)
+- Now uses `/homeassistant/home-assistant.log` and Supervisor API
+
 ## [1.2.39] - 2026-01-14
 
 ### Added
