@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.2.58] - 2026-01-16
+
+### Added
+- UART/serial port access (`uart: true`)
+
 ## [1.2.57] - 2026-01-16
 
 ### Added
