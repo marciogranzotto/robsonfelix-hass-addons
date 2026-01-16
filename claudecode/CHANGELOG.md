@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.2.56] - 2026-01-16
+
+### Added
+- `pyserial` Python library for serial port communication
+
 ## [1.2.55] - 2026-01-16
 
 ### Fixed
