@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.2.54] - 2026-01-16
+
+### Added
+- Archive tools: `unrar` for RAR extraction, `p7zip` for 7-Zip archives
+- Modbus tools: `mbpoll` command line Modbus master, `pymodbus` Python library
+- Useful for industrial automation and device communication tasks
+
 ## [1.2.53] - 2026-01-15
 
 ### Added

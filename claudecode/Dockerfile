@@ -37,6 +37,8 @@ RUN apk add --no-cache \
     ca-certificates \
     openssl \
     ripgrep \
+    unrar \
+    p7zip \
     && update-ca-certificates
 
 # Install ttyd static binary (avoids libwebsockets issues)
@@ -54,8 +56,24 @@ RUN case "${BUILD_ARCH}" in \
 # Install Claude Code via npm
 RUN npm install -g @anthropic-ai/claude-code
 
-# Install hass-mcp for Home Assistant integration
-RUN pip3 install --no-cache-dir --break-system-packages hass-mcp
+# Install hass-mcp for Home Assistant integration and pymodbus for Modbus operations
+RUN pip3 install --no-cache-dir --break-system-packages hass-mcp pymodbus
+
+# Install mbpoll (Modbus command line tool) from source
+RUN apk add --no-cache --virtual .build-deps \
+    build-base \
+    cmake \
+    libmodbus-dev \
+    && git clone https://github.com/epsilonrt/mbpoll.git /tmp/mbpoll \
+    && cd /tmp/mbpoll \
+    && mkdir build && cd build \
+    && cmake .. \
+    && make \
+    && make install \
+    && cd / \
+    && rm -rf /tmp/mbpoll \
+    && apk del .build-deps \
+    && apk add --no-cache libmodbus
 
 # Install Playwright MCP server (official Microsoft package)
 RUN npm install -g @playwright/mcp
