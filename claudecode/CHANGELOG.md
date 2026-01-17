@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.2.61] - 2026-01-16
+
+### Added
+- Full hardware access (`full_access: true`) for Docker socket mounting
+
 ## [1.2.60] - 2026-01-16
 
 ### Added
