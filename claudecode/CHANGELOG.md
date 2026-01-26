@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.2.62] - 2026-01-26
+
+### Fixed
+- MCP token now auto-updates when starting Claude via `c` or `cc` aliases
+- Fixes "HTTP error: 500" when SUPERVISOR_TOKEN changes after addon restart
+
 ## [1.2.61] - 2026-01-16
 
 ### Added
