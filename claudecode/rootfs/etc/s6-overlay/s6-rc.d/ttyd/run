@@ -1,0 +1,36 @@
+#!/command/with-contenv bashio
+# shellcheck shell=bash
+# ==============================================================================
+# Claude Code Add-on: ttyd web terminal service
+# ==============================================================================
+
+# Read config from container environment (set by init-claude)
+FONT_SIZE="${CLAUDE_FONT_SIZE:-14}"
+THEME="${CLAUDE_THEME:-dark}"
+SESSION_PERSIST="${CLAUDE_SESSION_PERSIST:-true}"
+
+# Resolve theme colors
+if [ "${THEME}" = "dark" ]; then
+    COLORS='background=#1e1e2e,foreground=#cdd6f4,cursor=#f5e0dc'
+else
+    COLORS='background=#eff1f5,foreground=#4c4f69,cursor=#dc8a78'
+fi
+
+# Resolve shell command
+if [ "${SESSION_PERSIST}" = "true" ]; then
+    SHELL_CMD="tmux new-session -A -s claude"
+else
+    SHELL_CMD="bash --login"
+fi
+
+bashio::log.info "Starting ttyd (font=${FONT_SIZE}, theme=${THEME}, persist=${SESSION_PERSIST})..."
+
+cd /homeassistant || true
+
+# ttyd runs as root, but s6-setuidgid drops to claude user for the shell
+exec ttyd --port 7681 --writable --ping-interval 30 --max-clients 5 \
+    -t "fontSize=${FONT_SIZE}" \
+    -t "fontFamily=Monaco,Consolas,monospace" \
+    -t "scrollback=20000" \
+    -t "theme=${COLORS}" \
+    s6-setuidgid claude ${SHELL_CMD}
