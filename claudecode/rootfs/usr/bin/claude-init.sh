@@ -176,9 +176,17 @@ fi
 # --- Ownership: give claude user access to all necessary dirs ---
 chown -R claude:claude "${PERSIST_DIR}"
 chown -R claude:claude /home/claude
-# Only chown top-level of mapped volumes (recursive would be slow)
-chown claude:claude /homeassistant 2>/dev/null || true
-chown claude:claude /share 2>/dev/null || true
-chown claude:claude /media 2>/dev/null || true
+
+# Give claude user access to mapped volumes
+chown -R claude:claude /homeassistant 2>/dev/null || true
+chown -R claude:claude /share 2>/dev/null || true
+chown -R claude:claude /media 2>/dev/null || true
+chown -R claude:claude /addon_configs 2>/dev/null || true
+chown -R claude:claude /data 2>/dev/null || true
+
+# Ensure /tmp/claude is owned by claude user (Claude Code uses /tmp/claude/ for sandbox tasks)
+mkdir -p /tmp/claude
+chown -R claude:claude /tmp/claude
+chmod 1777 /tmp 2>/dev/null || true
 
 bashio::log.info "Claude Code initialization complete"
