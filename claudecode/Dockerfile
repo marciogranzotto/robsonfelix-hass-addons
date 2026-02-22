@@ -40,6 +40,7 @@ RUN apk add --no-cache \
     p7zip \
     socat \
     docker-cli \
+    sudo \
     && update-ca-certificates
 
 # Install ttyd static binary (avoids libwebsockets issues)
@@ -96,9 +97,10 @@ RUN case "${BUILD_ARCH}" in \
     curl -fsSL "https://github.com/home-assistant/cli/releases/latest/download/ha_${HA_ARCH}" -o /usr/local/bin/ha && \
     chmod +x /usr/local/bin/ha
 
-# Create non-root claude user
+# Create non-root claude user with passwordless sudo
 RUN addgroup -S claude && \
-    adduser -S -G claude -h /home/claude -s /bin/bash claude
+    adduser -S -G claude -h /home/claude -s /bin/bash claude && \
+    echo 'claude ALL=(ALL) NOPASSWD: ALL' > /etc/sudoers.d/claude
 
 # Create necessary directories (NOT /home/claude/.claude - will be symlinked at runtime)
 RUN mkdir -p \
