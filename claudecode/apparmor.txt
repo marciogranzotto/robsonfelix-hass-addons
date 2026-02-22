@@ -60,7 +60,7 @@ profile claudecode flags=(attach_disconnected,mediate_deleted) {
   /config/ r,
   /config/** rwk,
 
-  # Claude Code and user home
+  # Root home (used by s6-overlay init process)
   /root/ r,
   /root/** rwk,
   /tmp/** rwk,
@@ -77,5 +77,5 @@ profile claudecode flags=(attach_disconnected,mediate_deleted) {
   /run/** rwk,
   /command/** ixr,
   /package/** r,
-  /etc/s6-overlay/** r,
+  /etc/s6-overlay/** ixr,
 }
