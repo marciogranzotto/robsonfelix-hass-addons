@@ -8,11 +8,11 @@
 bashio::log.info "Initializing Claude Code add-on..."
 
 # --- Export HA environment ---
-export HA_TOKEN="${SUPERVISOR_TOKEN}"
+export HA_TOKEN="${SUPERVISOR_TOKEN:-}"
 export HA_URL="http://supervisor/core"
 
 # Write env vars so the ttyd service (and its children) can access them
-printf '%s' "${SUPERVISOR_TOKEN}" > /var/run/s6/container_environment/HA_TOKEN
+printf '%s' "${SUPERVISOR_TOKEN:-}" > /var/run/s6/container_environment/HA_TOKEN
 printf '%s' "http://supervisor/core" > /var/run/s6/container_environment/HA_URL
 
 # --- Persistence setup ---
