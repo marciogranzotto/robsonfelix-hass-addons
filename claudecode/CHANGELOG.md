@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.3.7] - 2026-02-22
+
+### Fixed
+- Give claude user full ownership of all mapped volumes and /tmp/claude sandbox directory
+- Recursive chown on /homeassistant, /share, /media, /addon_configs, /data
+
 ## [1.3.6] - 2026-02-22
 
 ### Fixed
