@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.3.6] - 2026-02-22
+
+### Fixed
+- Set HOME=/home/claude when spawning user shell (s6-setuidgid only changes UID/GID, not environment)
+
 ## [1.3.5] - 2026-02-22
 
 ### Changed
