@@ -127,8 +127,16 @@ fi
 AUTO_UPDATE=$(bashio::config 'auto_update_claude')
 if [ "${AUTO_UPDATE}" = "true" ]; then
     bashio::log.info "Checking for Claude Code updates..."
-    npm update -g @anthropic-ai/claude-code 2>/dev/null || \
-        bashio::log.warning "Update check failed, continuing..."
+    if [ -f /root/.local/bin/claude ]; then
+        # Native install: re-run installer to update, copy to /usr/local/bin
+        curl -fsSL https://claude.ai/install.sh | bash 2>/dev/null \
+            && cp /root/.local/bin/claude /usr/local/bin/claude \
+            || bashio::log.warning "Update check failed, continuing..."
+    else
+        # npm install: use npm update
+        npm update -g @anthropic-ai/claude-code 2>/dev/null || \
+            bashio::log.warning "Update check failed, continuing..."
+    fi
 fi
 
 # --- Docker socket access ---

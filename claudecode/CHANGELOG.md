@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.3.5] - 2026-02-22
+
+### Changed
+- Use Anthropic's native installer for Claude Code on amd64/aarch64 (npm fallback for other architectures)
+- Auto-update uses native installer when available
+
 ## [1.3.4] - 2026-02-22
 
 ### Fixed
