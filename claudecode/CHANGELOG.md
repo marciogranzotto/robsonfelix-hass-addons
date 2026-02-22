@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.3.8] - 2026-02-22
+
+### Fixed
+- AppArmor: grant access to `/tmp/` directory (was missing directory entry, only had `/tmp/**` for contents)
+
 ## [1.3.7] - 2026-02-22
 
 ### Fixed
