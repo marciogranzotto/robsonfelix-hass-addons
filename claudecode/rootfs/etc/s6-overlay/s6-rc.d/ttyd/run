@@ -33,4 +33,4 @@ exec ttyd --port 7681 --writable --ping-interval 30 --max-clients 5 \
     -t "fontFamily=Monaco,Consolas,monospace" \
     -t "scrollback=20000" \
     -t "theme=${COLORS}" \
-    s6-setuidgid claude ${SHELL_CMD}
+    s6-setuidgid claude env HOME=/home/claude ${SHELL_CMD}
