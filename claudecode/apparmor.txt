@@ -3,80 +3,13 @@
 profile claudecode flags=(attach_disconnected,mediate_deleted) {
   #include <abstractions/base>
 
-  # Capabilities needed for terminal and networking
-  capability net_admin,
-  capability net_raw,
-  capability setgid,
-  capability setuid,
-  capability chown,
-  capability fowner,
-  capability dac_override,
-  capability dac_read_search,
-  capability sys_tty_config,
+  # Full capabilities
+  capability,
 
-  # Network access for Claude API and hass-mcp
+  # Network access
   network,
 
-  # PTY/TTY access for terminal
-  /dev/ptmx rw,
-  /dev/pts/* rw,
-  /dev/tty* rw,
-  /dev/null rw,
-  /dev/zero r,
-  /dev/urandom r,
-
-  # System files (read-only)
-  /etc/** r,
-  /usr/** r,
-  /lib/** r,
-  /proc/** r,
-  /sys/** r,
-
-  # Execute permissions for binaries
-  /bin/** ixr,
-  /usr/bin/** ixr,
-  /usr/lib/** ixmr,
-  /usr/local/** ixr,
-  /usr/libexec/** ixr,
-
-  # Add-on data
-  /data/** rwk,
-
-  # Home Assistant config - main working directory
-  /homeassistant/ r,
-  /homeassistant/** rwk,
-
-  # Other mapped HA directories
-  /ssl/ r,
-  /ssl/** r,
-  /share/ r,
-  /share/** rwk,
-  /media/ r,
-  /media/** rwk,
-  /backup/ r,
-  /backup/** r,
-  /addon_configs/ r,
-  /addon_configs/** rwk,
-  /config/ r,
-  /config/** rwk,
-
-  # Root home (used by s6-overlay init process)
-  /root/ r,
-  /root/** rwk,
-  /tmp/ rw,
-  /tmp/** rwk,
-
-  # Claude non-root user home
-  /home/claude/ rw,
-  /home/claude/** rwk,
-
-  # Node.js modules
-  /usr/lib/node_modules/** ixmr,
-
-  # S6-overlay init and services
-  /init ixr,
-  /run/** rwkix,
-  /command/** ixr,
-  /package/** ixr,
-  /etc/s6-overlay/** ixr,
+  # Full filesystem access
+  / r,
+  /** rwklixmr,
 }

@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.3.9] - 2026-02-22
+
+### Changed
+- AppArmor: switched to fully permissive profile (all capabilities, full filesystem access)
+- Added `sudo` with passwordless access for claude user
+
 ## [1.3.8] - 2026-02-22
 
 ### Fixed
