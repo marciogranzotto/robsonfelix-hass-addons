@@ -148,7 +148,7 @@ if [ "${ENABLE_MCP}" = "true" ]; then
     ALLOWED_TOOLS='["mcp__homeassistant__get_version","mcp__homeassistant__get_entity","mcp__homeassistant__list_entities","mcp__homeassistant__search_entities_tool","mcp__homeassistant__domain_summary_tool","mcp__homeassistant__list_automations","mcp__homeassistant__get_history","mcp__homeassistant__get_error_log","Read(/homeassistant/**)","Read(/config/**)","Read(/share/**)","Read(/media/**)","Glob(/homeassistant/**)","Glob(/config/**)","Grep(/homeassistant/**)","Grep(/config/**)"]'
     jq --argjson tools "${ALLOWED_TOOLS}" \
         '.permissions.allow = ($tools + (.permissions.allow // []) | unique)' \
-        "${SETTINGS_FILE}" > /tmp/settings.tmp && mv /tmp/settings.tmp "${SETTINGS_FILE}"
+        "${SETTINGS_FILE}" > /tmp/settings.tmp && [ -s /tmp/settings.tmp ] && mv /tmp/settings.tmp "${SETTINGS_FILE}"
     bashio::log.info "MCP configured with Home Assistant integration"
     bashio::log.info "Pre-authorized read-only MCP tools"
 else
