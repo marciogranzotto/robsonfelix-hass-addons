@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.3.1] - 2026-02-22
+
+### Fixed
+- AppArmor: grant execute permission on `/package/**` for s6-overlay-suexec
+
 ## [1.3.0] - 2026-02-22
 
 ### Changed
