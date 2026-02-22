@@ -63,6 +63,7 @@ profile claudecode flags=(attach_disconnected,mediate_deleted) {
   # Root home (used by s6-overlay init process)
   /root/ r,
   /root/** rwk,
+  /tmp/ rw,
   /tmp/** rwk,
 
   # Claude non-root user home
