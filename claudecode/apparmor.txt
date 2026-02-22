@@ -74,7 +74,7 @@ profile claudecode flags=(attach_disconnected,mediate_deleted) {
 
   # S6-overlay init and services
   /init ixr,
-  /run/** rwk,
+  /run/** rwkix,
   /command/** ixr,
   /package/** ixr,
   /etc/s6-overlay/** ixr,
