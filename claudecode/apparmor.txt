@@ -66,7 +66,7 @@ profile claudecode flags=(attach_disconnected,mediate_deleted) {
   /tmp/** rwk,
 
   # Claude non-root user home
-  /home/claude/ r,
+  /home/claude/ rw,
   /home/claude/** rwk,
 
   # Node.js modules
