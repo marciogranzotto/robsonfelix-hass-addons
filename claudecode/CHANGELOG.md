@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.3.0] - 2026-02-22
+
+### Changed
+- Migrated from Docker tini (`init: true`) to s6-overlay v3 (`init: false`)
+- Shell session now runs as non-root `claude` user instead of root
+- Claude Code `--dangerously-skip-permissions` flag now works
+- ttyd web terminal supervised by s6-overlay (auto-restart on crash)
+- Startup logic decomposed into s6-overlay services (init-claude oneshot + ttyd longrun)
+
+### Added
+- Non-root `claude` system user for shell sessions
+- s6-overlay process supervision for ttyd service
+- AppArmor rules for `/home/claude/` and s6-overlay paths
+
+### Note
+- All existing features (persistence, MCP, Playwright, Docker, tmux) work identically
+- Config persisted at `/homeassistant/.claudecode` is fully compatible (no migration needed)
+- Root is still used for container init and ttyd process; only the user shell is non-root
+
 ## [1.2.62] - 2026-01-26
 
 ### Fixed

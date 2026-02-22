@@ -1,0 +1,6 @@
+#!/command/with-contenv bashio
+# shellcheck shell=bash
+# ==============================================================================
+# Claude Code Add-on: Init oneshot
+# ==============================================================================
+exec /usr/bin/claude-init.sh
