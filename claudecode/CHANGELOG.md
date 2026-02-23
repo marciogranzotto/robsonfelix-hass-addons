@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.3.12] - 2026-02-23
+
+### Fixed
+- Fix `claude: command not found` — add `/home/claude/.local/bin` to PATH in `.bashrc`
+- Alpine's `/etc/profile` resets PATH on login shells, overriding Docker ENV
+
 ## [1.3.11] - 2026-02-23
 
 ### Fixed
