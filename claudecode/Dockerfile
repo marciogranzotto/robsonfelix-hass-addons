@@ -59,7 +59,8 @@ RUN case "${BUILD_ARCH}" in \
 RUN case "${BUILD_ARCH}" in \
         amd64|aarch64) \
             curl -fsSL https://claude.ai/install.sh | bash \
-            && cp /root/.local/bin/claude /usr/local/bin/claude ;; \
+            && mkdir -p /home/claude/.local/bin \
+            && cp /root/.local/bin/claude /home/claude/.local/bin/claude ;; \
         *) \
             npm install -g @anthropic-ai/claude-code ;; \
     esac

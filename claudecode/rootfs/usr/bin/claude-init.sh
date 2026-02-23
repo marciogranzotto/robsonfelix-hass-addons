@@ -127,10 +127,11 @@ fi
 AUTO_UPDATE=$(bashio::config 'auto_update_claude')
 if [ "${AUTO_UPDATE}" = "true" ]; then
     bashio::log.info "Checking for Claude Code updates..."
-    if [ -f /root/.local/bin/claude ]; then
-        # Native install: re-run installer to update, copy to /usr/local/bin
+    if [ -f /home/claude/.local/bin/claude ]; then
+        # Native install: re-run installer to update, copy to claude user's bin
         curl -fsSL https://claude.ai/install.sh | bash 2>/dev/null \
-            && cp /root/.local/bin/claude /usr/local/bin/claude \
+            && cp /root/.local/bin/claude /home/claude/.local/bin/claude \
+            && chown claude:claude /home/claude/.local/bin/claude \
             || bashio::log.warning "Update check failed, continuing..."
     else
         # npm install: use npm update
