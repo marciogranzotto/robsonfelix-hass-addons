@@ -55,14 +55,14 @@ RUN case "${BUILD_ARCH}" in \
     curl -fsSL "https://github.com/tsl0922/ttyd/releases/download/1.7.7/ttyd.${TTYD_ARCH}" -o /usr/bin/ttyd && \
     chmod +x /usr/bin/ttyd
 
-# Install Claude Code (native installer with npm fallback)
-RUN if [ "${BUILD_ARCH}" = "amd64" ] || [ "${BUILD_ARCH}" = "aarch64" ]; then \
-        curl -fsSL https://claude.ai/install.sh | bash \
-        && cp /root/.local/bin/claude /usr/local/bin/claude \
-        || npm install -g @anthropic-ai/claude-code; \
-    else \
-        npm install -g @anthropic-ai/claude-code; \
-    fi
+# Install Claude Code (native installer for amd64/aarch64, npm fallback for others)
+RUN case "${BUILD_ARCH}" in \
+        amd64|aarch64) \
+            curl -fsSL https://claude.ai/install.sh | bash \
+            && cp /root/.local/bin/claude /usr/local/bin/claude ;; \
+        *) \
+            npm install -g @anthropic-ai/claude-code ;; \
+    esac
 
 # Install hass-mcp for Home Assistant integration and pymodbus for Modbus operations
 RUN pip3 install --no-cache-dir --break-system-packages hass-mcp pymodbus pyserial
