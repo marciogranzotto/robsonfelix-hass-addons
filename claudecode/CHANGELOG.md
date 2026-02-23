@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.3.10] - 2026-02-23
+
+### Fixed
+- Install native Claude binary to `/home/claude/.local/bin/claude` instead of `/usr/local/bin/claude`
+- Eliminates "multiple installations found" warning (npm-global vs native conflict)
+- Auto-update now also targets the correct native path
+
 ## [1.3.9] - 2026-02-22
 
 ### Changed
