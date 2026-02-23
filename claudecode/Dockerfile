@@ -56,11 +56,10 @@ RUN case "${BUILD_ARCH}" in \
     chmod +x /usr/bin/ttyd
 
 # Install Claude Code (native installer for amd64/aarch64, npm fallback for others)
+# Binary is staged at /root/.local/bin/claude and copied to claude user's path after user creation
 RUN case "${BUILD_ARCH}" in \
         amd64|aarch64) \
-            curl -fsSL https://claude.ai/install.sh | bash \
-            && mkdir -p /home/claude/.local/bin \
-            && cp /root/.local/bin/claude /home/claude/.local/bin/claude ;; \
+            curl -fsSL https://claude.ai/install.sh | bash ;; \
         *) \
             npm install -g @anthropic-ai/claude-code ;; \
     esac
@@ -145,6 +144,11 @@ EOF
 
 # Ensure .bashrc is sourced for login shells too
 RUN echo 'source ~/.bashrc' > /home/claude/.profile
+
+# Copy native Claude binary to claude user's path (staged at /root/.local/bin during install)
+RUN if [ -f /root/.local/bin/claude ]; then \
+        cp /root/.local/bin/claude /home/claude/.local/bin/claude; \
+    fi
 
 # Set ownership of claude home directory
 RUN chown -R claude:claude /home/claude

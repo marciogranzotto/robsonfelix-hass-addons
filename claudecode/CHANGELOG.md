@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.3.11] - 2026-02-23
+
+### Fixed
+- Fix `claude: command not found` — native binary was being overwritten by `adduser` during build
+- Stage binary at `/root/.local/bin/` first, then copy to `/home/claude/.local/bin/` after user creation
+
 ## [1.3.10] - 2026-02-23
 
 ### Fixed
