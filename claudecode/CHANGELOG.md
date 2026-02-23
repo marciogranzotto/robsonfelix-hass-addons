@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.3.10] - 2026-02-22
+
+### Fixed
+- Claude Code native installer now falls back to npm if download fails (e.g. storage.googleapis.com unreachable)
+
 ## [1.3.9] - 2026-02-22
 
 ### Changed
