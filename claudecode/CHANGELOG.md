@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.3.13] - 2026-02-25
+
+### Changed
+- Full system access matching the SSH & Web Terminal add-on
+- Mount all available system folders with read-write access
+- Added `addons:rw` mapping (local add-ons at `/addons`)
+- Added `all_addon_configs:rw` mapping (all add-on configs at `/addon_configs`)
+- Upgraded `ssl` and `backup` mappings from read-only to read-write
+- Added `host_network: true` for full network access
+- Added `usb: true` for USB device access
+- Added `gpio: true` for GPIO pin access
+- Added `audio: true` for audio device access
+- Added `host_dbus: true` for D-Bus system access
+- Added `journald: true` for system journal/log access
+- Added privileged capabilities: NET_ADMIN, SYS_ADMIN, SYS_RAWIO, SYS_TIME, SYS_NICE
+- Added `/dev/mem` device access
+- Disabled AppArmor (`apparmor: false`) — custom profile no longer needed with full access
+
 ## [1.3.12] - 2026-02-23
 
 ### Fixed
