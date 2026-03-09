@@ -130,6 +130,9 @@ set -g history-limit 20000
 set -ga terminal-overrides ',xterm*:smcup@:rmcup@'
 # Enable mouse support for scrolling (but may affect copy/paste)
 set -g mouse on
+# Allow OSC52 clipboard to pass through to the outer terminal (ttyd/browser)
+set -g set-clipboard on
+set -g allow-passthrough on
 # Bind mouse wheel to scroll through history in copy mode
 bind -n WheelUpPane if-shell -F -t = "#{mouse_any_flag}" "send-keys -M" "if -Ft= '#{pane_in_mode}' 'send-keys -M' 'select-pane -t=; copy-mode -e; send-keys -M'"
 bind -n WheelDownPane select-pane -t= \; send-keys -M

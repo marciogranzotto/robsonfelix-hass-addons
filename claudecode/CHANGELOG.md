@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.3.16] - 2026-03-09
+
+### Fixed
+- Enable OSC52 clipboard passthrough in tmux so "c to copy" in Claude Code actually copies to the browser clipboard
+- Added `set-clipboard on` and `allow-passthrough on` to tmux config
+
 ## [1.3.15] - 2026-03-09
 
 ### Added
