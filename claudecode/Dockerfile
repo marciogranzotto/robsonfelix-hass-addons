@@ -55,19 +55,11 @@ RUN case "${BUILD_ARCH}" in \
     curl -fsSL "https://github.com/tsl0922/ttyd/releases/download/1.7.7/ttyd.${TTYD_ARCH}" -o /usr/bin/ttyd && \
     chmod +x /usr/bin/ttyd
 
-# Install Claude Code (native installer for amd64/aarch64, npm fallback for others)
-# Binary is staged at /root/.local/bin/claude and copied to claude user's path after user creation
-RUN case "${BUILD_ARCH}" in \
-        amd64|aarch64) \
-            curl -fsSL https://claude.ai/install.sh | bash ;; \
-        *) \
-            npm install -g @anthropic-ai/claude-code ;; \
-    esac
-
 # Install hass-mcp for Home Assistant integration and pymodbus for Modbus operations
 RUN pip3 install --no-cache-dir --break-system-packages hass-mcp pymodbus pyserial
 
-# Install mbpoll (Modbus command line tool) from source
+# Install mbpoll from source + build posix_getdents musl shim (shares build-base)
+# The shim fixes Claude native binary on Alpine: https://github.com/anthropics/claude-code/issues/29559
 RUN apk add --no-cache --virtual .build-deps \
     build-base \
     cmake \
@@ -80,8 +72,30 @@ RUN apk add --no-cache --virtual .build-deps \
     && make install \
     && cd / \
     && rm -rf /tmp/mbpoll \
+    && printf '%s\n' \
+        '#define _GNU_SOURCE' \
+        '#include <sys/syscall.h>' \
+        '#include <unistd.h>' \
+        'ssize_t posix_getdents(int fd, void *buf, size_t count) {' \
+        '    return syscall(SYS_getdents64, fd, buf, count);' \
+        '}' \
+        > /tmp/posix_getdents_fix.c \
+    && gcc -shared -fPIC -O2 -o /usr/local/lib/posix_getdents_fix.so /tmp/posix_getdents_fix.c \
+    && rm /tmp/posix_getdents_fix.c \
     && apk del .build-deps \
-    && apk add --no-cache libmodbus
+    && apk add --no-cache libmodbus gcompat
+
+# Set LD_PRELOAD early — the native installer runs the binary during setup
+ENV LD_PRELOAD="/lib/libgcompat.so.0:/usr/local/lib/posix_getdents_fix.so"
+
+# Install Claude Code (native installer for amd64/aarch64, npm fallback for others)
+# Binary is staged at /root/.local/bin/claude and copied to claude user's path after user creation
+RUN case "${BUILD_ARCH}" in \
+        amd64|aarch64) \
+            curl -fsSL https://claude.ai/install.sh | bash ;; \
+        *) \
+            npm install -g @anthropic-ai/claude-code ;; \
+    esac
 
 # Pre-cache Playwright MCP server (npx cache avoids /usr/local/bin/mcp conflict with hass-mcp)
 ENV NPM_CONFIG_CACHE=/root/.npm

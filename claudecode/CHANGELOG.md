@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.3.14] - 2026-03-09
+
+### Fixed
+- Fix `posix_getdents: symbol not found` crash on Alpine (musl) with Claude Code v2.1.63+
+- Build glibc compat shim (`posix_getdents_fix.so`) and set `LD_PRELOAD` globally
+- Shim is built before native installer so both install and auto-update work
+- See: https://github.com/anthropics/claude-code/issues/29559
+
 ## [1.3.13] - 2026-02-25
 
 ### Changed
