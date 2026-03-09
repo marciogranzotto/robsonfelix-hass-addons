@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.3.15] - 2026-03-09
+
+### Added
+- Configurable `bash_aliases` option to add custom shell aliases from the add-on UI
+- Each entry is added as `alias <entry>` to `.bashrc` on startup
+
 ## [1.3.14] - 2026-03-09
 
 ### Fixed

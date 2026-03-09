@@ -44,6 +44,11 @@ configuration:
     description: >-
       Verifica e instala automáticamente actualizaciones de Claude Code al iniciar el add-on.
       Mantiene Claude Code actualizado sin necesidad de actualizar la versión del add-on.
+  bash_aliases:
+    name: Aliases de Bash
+    description: >-
+      Aliases personalizados añadidos al shell. Cada entrada debe estar en el formato
+      nombre='comando' (ej: ll='ls -la', deploy='cd /homeassistant && bash deploy.sh').
 
 network:
   7681/tcp: Terminal Web (ttyd)

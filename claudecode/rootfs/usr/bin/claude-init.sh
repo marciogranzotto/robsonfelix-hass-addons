@@ -174,6 +174,22 @@ else
     bashio::log.info "Playwright MCP disabled"
 fi
 
+# --- Custom bash aliases ---
+ALIAS_COUNT=$(bashio::config 'bash_aliases|length')
+if [ "${ALIAS_COUNT}" -gt 0 ]; then
+    # Remove previous custom aliases block if present
+    sed -i '/^# --- Custom aliases ---$/,/^# --- End custom aliases ---$/d' /home/claude/.bashrc
+    {
+        echo '# --- Custom aliases ---'
+        for i in $(seq 0 $((ALIAS_COUNT - 1))); do
+            ALIAS_LINE=$(bashio::config "bash_aliases[${i}]")
+            echo "alias ${ALIAS_LINE}"
+        done
+        echo '# --- End custom aliases ---'
+    } >> /home/claude/.bashrc
+    bashio::log.info "Added ${ALIAS_COUNT} custom bash alias(es)"
+fi
+
 # --- Ownership: give claude user access to all necessary dirs ---
 chown -R claude:claude "${PERSIST_DIR}"
 chown -R claude:claude /home/claude

@@ -42,6 +42,11 @@ configuration:
     description: >-
       Automatically check for and install Claude Code updates on add-on startup.
       Keeps Claude Code current without requiring add-on version bumps.
+  bash_aliases:
+    name: Bash Aliases
+    description: >-
+      Custom bash aliases added to the shell. Each entry should be in the format
+      name='command' (e.g., ll='ls -la', deploy='cd /homeassistant && bash deploy.sh').
 
 network:
   7681/tcp: Web Terminal (ttyd)
