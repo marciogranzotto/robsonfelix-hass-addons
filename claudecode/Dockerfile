@@ -153,6 +153,7 @@ RUN cat > /home/claude/.bashrc << 'EOF'
 export TERM=xterm-256color
 export LANG=C.UTF-8
 export PATH="/home/claude/.local/bin:$PATH"
+export LD_PRELOAD="/lib/libgcompat.so.0:/usr/local/lib/posix_getdents_fix.so"
 PS1='\[\033[1;36m\]claude-code\[\033[0m\]:\[\033[1;34m\]\w\[\033[0m\]\$ '
 
 # Function to update MCP token before starting Claude

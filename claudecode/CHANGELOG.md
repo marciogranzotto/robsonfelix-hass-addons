@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.4.3] - 2026-03-20
+
+### Fixed
+- Fix `posix_getdents: symbol not found` in SSH sessions — export `LD_PRELOAD` in `.bashrc` so the gcompat shim is loaded in all shells, not just Docker-spawned processes
+
 ## [1.4.2] - 2026-03-20
 
 ### Fixed
