@@ -9,11 +9,5 @@ if [ "${CLAUDE_SSH_ENABLED}" != "true" ]; then
     exec sleep infinity
 fi
 
-# Check if the SSH port is actually mapped
-if ! bashio::var.has_value "$(bashio::addon.port 22)"; then
-    bashio::log.warning "SSH enabled but port 22 is not mapped — configure the port in add-on network settings"
-    exec sleep infinity
-fi
-
-bashio::log.info "Starting SSH server on port 22..."
+bashio::log.info "Starting SSH server on port ${CLAUDE_SSH_PORT}..."
 exec /usr/sbin/sshd -D -e

@@ -191,6 +191,7 @@ fi
 
 # --- SSH server setup ---
 ENABLE_SSH=$(bashio::config 'enable_ssh')
+SSH_PORT=$(bashio::config 'ssh_port')
 if [ "${ENABLE_SSH}" = "true" ]; then
     # Generate host keys if missing (persist across restarts)
     SSH_DIR="${PERSIST_DIR}/ssh"
@@ -204,7 +205,7 @@ if [ "${ENABLE_SSH}" = "true" ]; then
     # Write sshd config
     mkdir -p /etc/ssh
     cat > /etc/ssh/sshd_config << SSHEOF
-Port 22
+Port ${SSH_PORT}
 HostKey ${SSH_DIR}/ssh_host_rsa_key
 HostKey ${SSH_DIR}/ssh_host_ecdsa_key
 HostKey ${SSH_DIR}/ssh_host_ed25519_key
@@ -255,9 +256,10 @@ TMUXEOF
 
     # Write env vars for sshd service
     printf 'true' > /var/run/s6/container_environment/CLAUDE_SSH_ENABLED
+    printf '%s' "${SSH_PORT}" > /var/run/s6/container_environment/CLAUDE_SSH_PORT
 
     if [ "${KEY_COUNT}" -gt 0 ]; then
-        bashio::log.info "SSH enabled with ${KEY_COUNT} authorized key(s)"
+        bashio::log.info "SSH enabled on port ${SSH_PORT} with ${KEY_COUNT} authorized key(s)"
     else
         bashio::log.warning "SSH enabled but no authorized_keys configured — add your public key in the add-on config"
     fi

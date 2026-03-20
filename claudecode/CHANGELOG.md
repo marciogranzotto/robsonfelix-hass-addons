@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.4.1] - 2026-03-20
+
+### Fixed
+- Fix SSH port conflict — add configurable `ssh_port` option (default 2222) since `host_network: true` means port mappings are ignored and port 22 is typically taken by the HA SSH add-on
+- Remove unused `ports`/`ports_description` from config (not applicable with host networking)
+
 ## [1.4.0] - 2026-03-20
 
 ### Added
