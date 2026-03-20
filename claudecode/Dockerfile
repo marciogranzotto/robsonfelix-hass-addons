@@ -89,8 +89,9 @@ RUN apk add --no-cache --virtual .build-deps \
 RUN case "${BUILD_ARCH}" in \
         amd64|aarch64) \
             curl -fsSL https://bun.sh/install | bash && \
-            ln -s /root/.bun/bin/bun /usr/local/bin/bun && \
-            ln -s /root/.bun/bin/bunx /usr/local/bin/bunx ;; \
+            cp /root/.bun/bin/bun /usr/local/bin/bun && \
+            ln -s /usr/local/bin/bun /usr/local/bin/bunx && \
+            rm -rf /root/.bun ;; \
     esac
 
 # Set LD_PRELOAD early — the native installer runs the binary during setup

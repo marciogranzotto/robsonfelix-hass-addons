@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.3.19] - 2026-03-20
+
+### Fixed
+- Fix Bun binary inaccessible to claude user — copy binary to `/usr/local/bin` instead of symlinking into `/root/.bun/` (permission denied)
+
 ## [1.3.18] - 2026-03-20
 
 ### Fixed
