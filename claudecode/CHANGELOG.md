@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.4.0] - 2026-03-20
+
+### Added
+- SSH server support — enable in add-on config with `enable_ssh` and provide `authorized_keys`
+- Port mapping on container port 22 (configure host port in add-on network settings)
+- SSH host keys persist across restarts in `/homeassistant/.claudecode/ssh/`
+- Key-based auth only, password auth disabled, root login disabled
+
 ## [1.3.19] - 2026-03-20
 
 ### Fixed

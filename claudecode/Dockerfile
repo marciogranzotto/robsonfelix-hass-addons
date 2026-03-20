@@ -24,6 +24,7 @@ RUN apk add --no-cache \
     nodejs \
     npm \
     openssh-client \
+    openssh-server \
     libstdc++ \
     ncurses \
     vim \

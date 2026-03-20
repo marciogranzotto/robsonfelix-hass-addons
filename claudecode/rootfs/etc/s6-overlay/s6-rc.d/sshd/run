@@ -1,0 +1,13 @@
+#!/command/with-contenv bashio
+# shellcheck shell=bash
+# ==============================================================================
+# Claude Code Add-on: sshd service
+# ==============================================================================
+
+if [ "${CLAUDE_SSH_ENABLED}" != "true" ]; then
+    bashio::log.info "SSH disabled, sleeping..."
+    exec sleep infinity
+fi
+
+bashio::log.info "Starting SSH server on port 22..."
+exec /usr/sbin/sshd -D -e

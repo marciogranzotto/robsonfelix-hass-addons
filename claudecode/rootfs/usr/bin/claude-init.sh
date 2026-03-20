@@ -189,6 +189,59 @@ if [ "${ALIAS_COUNT}" -gt 0 ]; then
     bashio::log.info "Added ${ALIAS_COUNT} custom bash alias(es)"
 fi
 
+# --- SSH server setup ---
+ENABLE_SSH=$(bashio::config 'enable_ssh')
+if [ "${ENABLE_SSH}" = "true" ]; then
+    # Generate host keys if missing (persist across restarts)
+    SSH_DIR="${PERSIST_DIR}/ssh"
+    mkdir -p "${SSH_DIR}"
+    for keytype in rsa ecdsa ed25519; do
+        if [ ! -f "${SSH_DIR}/ssh_host_${keytype}_key" ]; then
+            ssh-keygen -t "${keytype}" -f "${SSH_DIR}/ssh_host_${keytype}_key" -N "" -q
+        fi
+    done
+
+    # Write sshd config
+    mkdir -p /etc/ssh
+    cat > /etc/ssh/sshd_config << SSHEOF
+Port 22
+HostKey ${SSH_DIR}/ssh_host_rsa_key
+HostKey ${SSH_DIR}/ssh_host_ecdsa_key
+HostKey ${SSH_DIR}/ssh_host_ed25519_key
+PermitRootLogin no
+PasswordAuthentication no
+PubkeyAuthentication yes
+AllowUsers claude
+PrintMotd no
+AcceptEnv LANG LC_*
+Subsystem sftp /usr/lib/ssh/sftp-server
+SSHEOF
+
+    # Write authorized_keys from config
+    mkdir -p /home/claude/.ssh
+    : > /home/claude/.ssh/authorized_keys
+    KEY_COUNT=$(bashio::config 'authorized_keys|length')
+    for i in $(seq 0 $((KEY_COUNT - 1))); do
+        KEY=$(bashio::config "authorized_keys[${i}]")
+        echo "${KEY}" >> /home/claude/.ssh/authorized_keys
+    done
+    chmod 700 /home/claude/.ssh
+    chmod 600 /home/claude/.ssh/authorized_keys
+    chown -R claude:claude /home/claude/.ssh
+
+    # Write env vars for sshd service
+    printf 'true' > /var/run/s6/container_environment/CLAUDE_SSH_ENABLED
+
+    if [ "${KEY_COUNT}" -gt 0 ]; then
+        bashio::log.info "SSH enabled with ${KEY_COUNT} authorized key(s)"
+    else
+        bashio::log.warning "SSH enabled but no authorized_keys configured — add your public key in the add-on config"
+    fi
+else
+    printf 'false' > /var/run/s6/container_environment/CLAUDE_SSH_ENABLED
+    bashio::log.info "SSH disabled"
+fi
+
 # --- Ownership: give claude user access to all necessary dirs ---
 chown -R claude:claude "${PERSIST_DIR}"
 chown -R claude:claude /home/claude
