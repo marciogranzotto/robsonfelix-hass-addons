@@ -85,6 +85,11 @@ if [ ! -L /home/claude/.claude ]; then
     rm -rf /home/claude/.claude
     ln -s "${PERSIST_DIR}" /home/claude/.claude
 fi
+# Also symlink /root/.claude so plugins installed/synced as root are accessible
+if [ ! -L /root/.claude ]; then
+    rm -rf /root/.claude
+    ln -s "${PERSIST_DIR}" /root/.claude
+fi
 if [ ! -L /home/claude/.config/claude-code ]; then
     rm -rf /home/claude/.config/claude-code
     ln -s "${PERSIST_DIR}/config" /home/claude/.config/claude-code

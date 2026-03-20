@@ -85,6 +85,14 @@ RUN apk add --no-cache --virtual .build-deps \
     && apk del .build-deps \
     && apk add --no-cache libmodbus gcompat
 
+# Install Bun runtime (amd64/aarch64 only)
+RUN case "${BUILD_ARCH}" in \
+        amd64|aarch64) \
+            curl -fsSL https://bun.sh/install | bash && \
+            ln -s /root/.bun/bin/bun /usr/local/bin/bun && \
+            ln -s /root/.bun/bin/bunx /usr/local/bin/bunx ;; \
+    esac
+
 # Set LD_PRELOAD early — the native installer runs the binary during setup
 ENV LD_PRELOAD="/lib/libgcompat.so.0:/usr/local/lib/posix_getdents_fix.so"
 
