@@ -9,6 +9,9 @@ All notable changes to this project will be documented in this file.
 - Port mapping on container port 22 (configure host port in add-on network settings)
 - SSH host keys persist across restarts in `/homeassistant/.claudecode/ssh/`
 - Key-based auth only, password auth disabled, root login disabled
+- SSH sessions share the same tmux session as the web terminal
+- `SUPERVISOR_TOKEN` available in SSH sessions via `PermitUserEnvironment`
+- Graceful handling when SSH is enabled but port is not mapped (logs warning, sleeps)
 
 ## [1.3.19] - 2026-03-20
 

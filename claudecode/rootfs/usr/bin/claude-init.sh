@@ -214,6 +214,7 @@ PubkeyAuthentication yes
 AllowUsers claude
 PrintMotd no
 AcceptEnv LANG LC_*
+PermitUserEnvironment SUPERVISOR_TOKEN,HA_TOKEN
 Subsystem sftp /usr/lib/ssh/sftp-server
 SSHEOF
 
@@ -225,9 +226,32 @@ SSHEOF
         KEY=$(bashio::config "authorized_keys[${i}]")
         echo "${KEY}" >> /home/claude/.ssh/authorized_keys
     done
+
+    # Write SSH environment file so SUPERVISOR_TOKEN is available in SSH sessions
+    cat > /home/claude/.ssh/environment << ENVEOF
+SUPERVISOR_TOKEN=${SUPERVISOR_TOKEN:-}
+HA_TOKEN=${SUPERVISOR_TOKEN:-}
+HA_URL=http://supervisor/core
+ENVEOF
+
     chmod 700 /home/claude/.ssh
     chmod 600 /home/claude/.ssh/authorized_keys
+    chmod 600 /home/claude/.ssh/environment
     chown -R claude:claude /home/claude/.ssh
+
+    # Ensure SSH login shells attach to the shared tmux session (same as web terminal)
+    # This makes SSH and web terminal share the exact same session
+    if ! grep -q 'SSH tmux attach' /home/claude/.bashrc; then
+        cat >> /home/claude/.bashrc << 'TMUXEOF'
+
+# --- SSH tmux attach ---
+# If logging in via SSH (not already in tmux), attach to the shared session
+if [ -n "$SSH_CONNECTION" ] && [ -z "$TMUX" ]; then
+    tmux new-session -A -s claude && exit
+fi
+# --- End SSH tmux attach ---
+TMUXEOF
+    fi
 
     # Write env vars for sshd service
     printf 'true' > /var/run/s6/container_environment/CLAUDE_SSH_ENABLED
