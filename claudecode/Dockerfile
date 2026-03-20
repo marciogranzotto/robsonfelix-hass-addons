@@ -152,6 +152,11 @@ EOF
 
 # Configure bash with aliases and prompt
 RUN cat > /home/claude/.bashrc << 'EOF'
+# Attach to shared tmux session for SSH logins (same session as web terminal)
+if [ -n "$SSH_CONNECTION" ] && [ -z "$TMUX" ]; then
+  tmux new-session -A -s claude && exit
+fi
+
 export TERM=xterm-256color
 export LANG=C.UTF-8
 export LC_ALL=C.UTF-8

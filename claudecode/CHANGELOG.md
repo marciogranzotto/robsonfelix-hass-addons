@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.4.5] - 2026-03-20
+
+### Fixed
+- Fix SSH not sharing tmux session with web terminal — move tmux attach logic to top of `.bashrc` (baked in Dockerfile) instead of relying on init script append
+
 ## [1.4.4] - 2026-03-20
 
 ### Fixed

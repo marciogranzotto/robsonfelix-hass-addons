@@ -243,20 +243,6 @@ ENVEOF
     chmod 600 /home/claude/.ssh/environment
     chown -R claude:claude /home/claude/.ssh
 
-    # Ensure SSH login shells attach to the shared tmux session (same as web terminal)
-    # This makes SSH and web terminal share the exact same session
-    if ! grep -q 'SSH tmux attach' /home/claude/.bashrc; then
-        cat >> /home/claude/.bashrc << 'TMUXEOF'
-
-# --- SSH tmux attach ---
-# If logging in via SSH (not already in tmux), attach to the shared session
-if [ -n "$SSH_CONNECTION" ] && [ -z "$TMUX" ]; then
-    tmux new-session -A -s claude && exit
-fi
-# --- End SSH tmux attach ---
-TMUXEOF
-    fi
-
     # Write env vars for sshd service
     printf 'true' > /var/run/s6/container_environment/CLAUDE_SSH_ENABLED
     printf '%s' "${SSH_PORT}" > /var/run/s6/container_environment/CLAUDE_SSH_PORT
