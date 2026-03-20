@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.4.4] - 2026-03-20
+
+### Fixed
+- Full SSH/web terminal environment parity: export `LC_ALL`, `HA_URL`, `NPM_CONFIG_CACHE`, `SUPERVISOR_TOKEN` in `.bashrc`
+- Add `HA_URL` to `PermitUserEnvironment` allowlist so it's available in SSH sessions
+- Fix `NPM_CONFIG_CACHE` pointing to `/root/.npm` — now uses `/home/claude/.npm`
+- SSH sessions now `cd /homeassistant` on login (same as web terminal)
+- Add tmux `update-environment` for add-on env vars so SSH<->web terminal client switches propagate env
+- Source `SUPERVISOR_TOKEN` from `.ssh/environment` in `.bashrc` as fallback
+
 ## [1.4.3] - 2026-03-20
 
 ### Fixed

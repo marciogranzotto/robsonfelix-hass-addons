@@ -108,7 +108,7 @@ RUN case "${BUILD_ARCH}" in \
     esac
 
 # Pre-cache Playwright MCP server (npx cache avoids /usr/local/bin/mcp conflict with hass-mcp)
-ENV NPM_CONFIG_CACHE=/root/.npm
+ENV NPM_CONFIG_CACHE=/home/claude/.npm
 RUN npx @playwright/mcp --version || true
 
 # Install Home Assistant CLI (ha command)
@@ -146,15 +146,28 @@ set -g allow-passthrough on
 # Bind mouse wheel to scroll through history in copy mode
 bind -n WheelUpPane if-shell -F -t = "#{mouse_any_flag}" "send-keys -M" "if -Ft= '#{pane_in_mode}' 'send-keys -M' 'select-pane -t=; copy-mode -e; send-keys -M'"
 bind -n WheelDownPane select-pane -t= \; send-keys -M
+# Propagate add-on env vars when a new client attaches (SSH <-> web terminal parity)
+set -g update-environment "SUPERVISOR_TOKEN HA_TOKEN HA_URL LD_PRELOAD NPM_CONFIG_CACHE LANG TERM"
 EOF
 
 # Configure bash with aliases and prompt
 RUN cat > /home/claude/.bashrc << 'EOF'
 export TERM=xterm-256color
 export LANG=C.UTF-8
+export LC_ALL=C.UTF-8
 export PATH="/home/claude/.local/bin:$PATH"
 export LD_PRELOAD="/lib/libgcompat.so.0:/usr/local/lib/posix_getdents_fix.so"
+export NPM_CONFIG_CACHE=/home/claude/.npm
+export HA_URL="http://supervisor/core"
+# Source SUPERVISOR_TOKEN from SSH environment file if not already set (SSH sessions)
+if [ -z "$SUPERVISOR_TOKEN" ] && [ -f /home/claude/.ssh/environment ]; then
+  eval "$(grep '^SUPERVISOR_TOKEN=' /home/claude/.ssh/environment)"
+  export SUPERVISOR_TOKEN HA_TOKEN="$SUPERVISOR_TOKEN"
+fi
 PS1='\[\033[1;36m\]claude-code\[\033[0m\]:\[\033[1;34m\]\w\[\033[0m\]\$ '
+
+# Start in HA config directory (same as web terminal)
+[ "$PWD" = "/home/claude" ] && cd /homeassistant 2>/dev/null || true
 
 # Function to update MCP token before starting Claude
 update_mcp_token() {

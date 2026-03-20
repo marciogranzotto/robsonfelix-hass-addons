@@ -218,7 +218,7 @@ PubkeyAuthentication yes
 AllowUsers claude
 PrintMotd no
 AcceptEnv LANG LC_*
-PermitUserEnvironment SUPERVISOR_TOKEN,HA_TOKEN
+PermitUserEnvironment SUPERVISOR_TOKEN,HA_TOKEN,HA_URL
 Subsystem sftp /usr/lib/ssh/sftp-server
 SSHEOF
 
