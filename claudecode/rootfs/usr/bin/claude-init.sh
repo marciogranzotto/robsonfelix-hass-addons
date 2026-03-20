@@ -90,6 +90,13 @@ if [ ! -L /root/.claude ]; then
     rm -rf /root/.claude
     ln -s "${PERSIST_DIR}" /root/.claude
 fi
+# Fix marketplace paths: rewrite /root/.claude -> /home/claude/.claude in plugin configs
+# Claude Code validates installLocation is under the current user's ~/.claude, so string must match
+KNOWN_MP="${PERSIST_DIR}/plugins/marketplaces/known_marketplaces.json"
+if [ -f "${KNOWN_MP}" ] && grep -q '/root/.claude' "${KNOWN_MP}"; then
+    sed -i 's|/root/.claude|/home/claude/.claude|g' "${KNOWN_MP}"
+    bashio::log.info "Fixed marketplace paths (root -> claude user)"
+fi
 if [ ! -L /home/claude/.config/claude-code ]; then
     rm -rf /home/claude/.config/claude-code
     ln -s "${PERSIST_DIR}/config" /home/claude/.config/claude-code

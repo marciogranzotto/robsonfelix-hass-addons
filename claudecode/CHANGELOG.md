@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.3.18] - 2026-03-20
+
+### Fixed
+- Fix corrupted marketplace `installLocation` paths: rewrite `/root/.claude` to `/home/claude/.claude` in `known_marketplaces.json` at startup so Claude Code's path validation passes
+
 ## [1.3.17] - 2026-03-20
 
 ### Added
