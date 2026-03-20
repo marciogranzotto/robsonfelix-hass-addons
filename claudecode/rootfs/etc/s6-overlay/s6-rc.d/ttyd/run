@@ -27,6 +27,22 @@ bashio::log.info "Starting ttyd (font=${FONT_SIZE}, theme=${THEME}, persist=${SE
 
 cd /homeassistant || true
 
+# Send startup command to tmux session after it's ready (runs in background)
+if [ -n "${CLAUDE_STARTUP_CMD:-}" ] && [ "${SESSION_PERSIST}" = "true" ]; then
+    (
+        # Wait for the tmux session to be created
+        for _ in $(seq 1 30); do
+            if s6-setuidgid claude tmux has-session -t claude 2>/dev/null; then
+                sleep 1
+                s6-setuidgid claude tmux send-keys -t claude "${CLAUDE_STARTUP_CMD}" Enter
+                bashio::log.info "Sent startup command to tmux session"
+                break
+            fi
+            sleep 1
+        done
+    ) &
+fi
+
 # ttyd runs as root, but s6-setuidgid drops to claude user for the shell
 exec ttyd --port 7681 --writable --ping-interval 30 --max-clients 5 \
     -t "fontSize=${FONT_SIZE}" \

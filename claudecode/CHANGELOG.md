@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.4.7] - 2026-03-20
+
+### Added
+- Configurable `startup_command` option — runs a command in the tmux session after add-on start/restart (e.g. `claude`, `claude --dangerously-skip-permissions`, `claude --continue`)
+
 ## [1.4.6] - 2026-03-20
 
 ### Fixed

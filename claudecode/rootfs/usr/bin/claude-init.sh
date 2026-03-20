@@ -108,6 +108,13 @@ printf '%s' "${FONT_SIZE}" > /var/run/s6/container_environment/CLAUDE_FONT_SIZE
 printf '%s' "${THEME}" > /var/run/s6/container_environment/CLAUDE_THEME
 printf '%s' "${SESSION_PERSIST}" > /var/run/s6/container_environment/CLAUDE_SESSION_PERSIST
 
+# --- Startup command ---
+STARTUP_CMD=$(bashio::config 'startup_command')
+if bashio::var.has_value "${STARTUP_CMD}"; then
+    printf '%s' "${STARTUP_CMD}" > /var/run/s6/container_environment/CLAUDE_STARTUP_CMD
+    bashio::log.info "Startup command: ${STARTUP_CMD}"
+fi
+
 # --- Auto-detect Playwright hostname ---
 if [ -z "${PLAYWRIGHT_HOST}" ] && [ "${ENABLE_PLAYWRIGHT}" = "true" ]; then
     bashio::log.info "Auto-detecting Playwright Browser hostname..."
