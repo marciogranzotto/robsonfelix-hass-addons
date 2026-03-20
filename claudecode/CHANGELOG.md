@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.4.6] - 2026-03-20
+
+### Fixed
+- Fix "missing or unsuitable terminal" in SSH — force `TERM=xterm-256color` before tmux attach so client-side terminal types (e.g. `xterm-ghostty`) don't cause errors on Alpine
+
 ## [1.4.5] - 2026-03-20
 
 ### Fixed
