@@ -193,6 +193,9 @@ fi
 ENABLE_SSH=$(bashio::config 'enable_ssh')
 SSH_PORT=$(bashio::config 'ssh_port')
 if [ "${ENABLE_SSH}" = "true" ]; then
+    # Unlock the claude account (adduser -S creates a locked account, sshd rejects locked users)
+    passwd -u claude 2>/dev/null || true
+
     # Generate host keys if missing (persist across restarts)
     SSH_DIR="${PERSIST_DIR}/ssh"
     mkdir -p "${SSH_DIR}"

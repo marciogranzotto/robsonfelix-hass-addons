@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.4.2] - 2026-03-20
+
+### Fixed
+- Fix SSH "account is locked" — unlock the claude user account at startup so sshd allows pubkey auth (system users created with `adduser -S` have locked passwords)
+
 ## [1.4.1] - 2026-03-20
 
 ### Fixed
