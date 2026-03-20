@@ -5,16 +5,12 @@ All notable changes to this project will be documented in this file.
 ## [1.3.18] - 2026-03-20
 
 ### Fixed
-- Fix corrupted marketplace `installLocation` paths: rewrite `/root/.claude` to `/home/claude/.claude` in `known_marketplaces.json` at startup so Claude Code's path validation passes
+- Fix plugin marketplace path corruption by running auto-update installer with `HOME=/home/claude` so all paths are written under the claude user's home directory
 
 ## [1.3.17] - 2026-03-20
 
 ### Added
 - Bun runtime pre-installed in the container (amd64/aarch64)
-
-### Fixed
-- Fix plugin installation failing with "Source path does not exist: /root/.claude/plugins/..."
-- Symlink `/root/.claude` to persistence directory so plugins synced as root are accessible to the claude user
 
 ## [1.3.16] - 2026-03-09
 

@@ -85,18 +85,6 @@ if [ ! -L /home/claude/.claude ]; then
     rm -rf /home/claude/.claude
     ln -s "${PERSIST_DIR}" /home/claude/.claude
 fi
-# Also symlink /root/.claude so plugins installed/synced as root are accessible
-if [ ! -L /root/.claude ]; then
-    rm -rf /root/.claude
-    ln -s "${PERSIST_DIR}" /root/.claude
-fi
-# Fix marketplace paths: rewrite /root/.claude -> /home/claude/.claude in plugin configs
-# Claude Code validates installLocation is under the current user's ~/.claude, so string must match
-KNOWN_MP="${PERSIST_DIR}/plugins/marketplaces/known_marketplaces.json"
-if [ -f "${KNOWN_MP}" ] && grep -q '/root/.claude' "${KNOWN_MP}"; then
-    sed -i 's|/root/.claude|/home/claude/.claude|g' "${KNOWN_MP}"
-    bashio::log.info "Fixed marketplace paths (root -> claude user)"
-fi
 if [ ! -L /home/claude/.config/claude-code ]; then
     rm -rf /home/claude/.config/claude-code
     ln -s "${PERSIST_DIR}/config" /home/claude/.config/claude-code
@@ -140,9 +128,8 @@ AUTO_UPDATE=$(bashio::config 'auto_update_claude')
 if [ "${AUTO_UPDATE}" = "true" ]; then
     bashio::log.info "Checking for Claude Code updates..."
     if [ -f /home/claude/.local/bin/claude ]; then
-        # Native install: re-run installer to update, copy to claude user's bin
-        curl -fsSL https://claude.ai/install.sh | bash 2>/dev/null \
-            && cp /root/.local/bin/claude /home/claude/.local/bin/claude \
+        # Native install: re-run installer with HOME=/home/claude so paths stay consistent
+        HOME=/home/claude curl -fsSL https://claude.ai/install.sh | HOME=/home/claude bash 2>/dev/null \
             && chown claude:claude /home/claude/.local/bin/claude \
             || bashio::log.warning "Update check failed, continuing..."
     else
