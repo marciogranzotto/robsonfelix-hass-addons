@@ -16,7 +16,23 @@ printf '%s' "${SUPERVISOR_TOKEN:-}" > /var/run/s6/container_environment/HA_TOKEN
 printf '%s' "http://supervisor/core" > /var/run/s6/container_environment/HA_URL
 
 # --- Persistence setup ---
-PERSIST_DIR=/homeassistant/.claudecode
+# Claude's state lives in the add-on's PRIVATE /data volume — NOT in the shared
+# HA config dir. Other add-ons that map the HA config dir (e.g. LinuxServer.io
+# images running as uid 911) `chown -R` the entire tree on startup, which would
+# clobber Claude's credentials and break session-env creation. /data is private
+# to this add-on, so nothing else can touch it.
+PERSIST_DIR=/data/.claude
+LEGACY_DIR=/homeassistant/.claudecode
+
+# One-time migration from the legacy shared-config location to private /data.
+# Runs only if /data has no Claude state yet but the legacy dir exists.
+if [ ! -d "${PERSIST_DIR}" ] && [ -d "${LEGACY_DIR}" ]; then
+    bashio::log.info "Migrating Claude data from ${LEGACY_DIR} to ${PERSIST_DIR}..."
+    mkdir -p "${PERSIST_DIR}"
+    cp -a "${LEGACY_DIR}/." "${PERSIST_DIR}/" 2>/dev/null || true
+    bashio::log.info "Migration complete (legacy dir left in place; safe to delete manually)"
+fi
+
 mkdir -p "${PERSIST_DIR}/config"
 mkdir -p /home/claude/.config
 
@@ -81,25 +97,25 @@ logger:
 CLAUDEMD
 
 # --- Create symlinks (from claude user home to persist dir) ---
-if [ ! -L /home/claude/.claude ]; then
-    rm -rf /home/claude/.claude
-    ln -s "${PERSIST_DIR}" /home/claude/.claude
-fi
-if [ ! -L /home/claude/.config/claude-code ]; then
-    rm -rf /home/claude/.config/claude-code
-    ln -s "${PERSIST_DIR}/config" /home/claude/.config/claude-code
-fi
-if [ ! -L /home/claude/.claude.json ]; then
-    touch "${PERSIST_DIR}/.claude.json"
-    rm -f /home/claude/.claude.json
-    ln -s "${PERSIST_DIR}/.claude.json" /home/claude/.claude.json
-fi
+# Force-update each symlink so a relocation of PERSIST_DIR (e.g. an old install
+# whose ~/.claude still points at the legacy location) is picked up. If the path
+# exists as a real dir/file rather than a symlink, remove it first.
+[ -L /home/claude/.claude ] || rm -rf /home/claude/.claude
+ln -sfn "${PERSIST_DIR}" /home/claude/.claude
+
+[ -L /home/claude/.config/claude-code ] || rm -rf /home/claude/.config/claude-code
+ln -sfn "${PERSIST_DIR}/config" /home/claude/.config/claude-code
+
+touch "${PERSIST_DIR}/.claude.json"
+[ -L /home/claude/.claude.json ] || rm -f /home/claude/.claude.json
+ln -sfn "${PERSIST_DIR}/.claude.json" /home/claude/.claude.json
 
 # --- Normalize persist-dir ownership to the current claude UID/GID ---
-# The claude UID is pinned in the Dockerfile, but installs created by an older
-# build may have ~/.claude owned by a now-orphaned UID (e.g. 911). Re-own the
-# persisted dir to the current claude user so it can read its credentials and
-# create session-env/ directories. Numeric ids avoid name-resolution surprises.
+# Freshly migrated data (cp -a preserves the foreign uid, e.g. 911 from a
+# LinuxServer.io add-on) and installs from an older build may be owned by a
+# now-orphaned UID. Re-own the persist dir to the current claude user so it can
+# read its credentials and create session-env/ directories. /data is private, so
+# once normalized it stays put. Numeric ids avoid name-resolution surprises.
 # MUST run BEFORE any `s6-setuidgid claude` operations below (e.g. MCP setup),
 # which write into this dir as the claude user.
 CLAUDE_UID="$(id -u claude)"

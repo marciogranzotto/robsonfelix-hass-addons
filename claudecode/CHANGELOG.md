@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.4.9] - 2026-06-03
+
+### Changed
+- **Store Claude's state in the add-on's private `/data` volume instead of the shared HA config dir** (`/homeassistant/.claudecode`). Other add-ons that map the HA config dir — notably LinuxServer.io-based images, which run as uid 911 and `chown -R abc:abc /config` on every startup — were recursively re-owning Claude's persisted `~/.claude` to uid 911, breaking credential access (`Not logged in`) and `session-env` creation after they (re)started. `/data` is private to this add-on and cannot be touched by others
+- Existing installs are migrated automatically on first start (one-time `cp -a` from the legacy location to `/data/.claude`); the legacy dir is left in place and is safe to delete manually
+- Symlinks (`~/.claude`, `~/.config/claude-code`, `~/.claude.json`) are now force-updated each start so the relocation is picked up on upgrade
+
 ## [1.4.8] - 2026-06-03
 
 ### Fixed
