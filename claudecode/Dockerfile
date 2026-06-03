@@ -122,9 +122,14 @@ RUN case "${BUILD_ARCH}" in \
     curl -fsSL "https://github.com/home-assistant/cli/releases/latest/download/ha_${HA_ARCH}" -o /usr/local/bin/ha && \
     chmod +x /usr/local/bin/ha
 
-# Create non-root claude user with passwordless sudo
-RUN addgroup -S claude && \
-    adduser -S -G claude -h /home/claude -s /bin/bash claude && \
+# Create non-root claude user with passwordless sudo.
+# Pin UID/GID to fixed values (1000:1000). adduser -S without -u picks the first
+# free system id, which drifts when the base image changes between rebuilds — that
+# orphans the persisted ~/.claude (owned by the old uid) on the HA config volume,
+# breaking session-env creation and credential access. A fixed id keeps ownership
+# stable across rebuilds.
+RUN addgroup -g 1000 claude && \
+    adduser -u 1000 -S -G claude -h /home/claude -s /bin/bash claude && \
     echo 'claude ALL=(ALL) NOPASSWD: ALL' > /etc/sudoers.d/claude
 
 # Create necessary directories (NOT /home/claude/.claude - will be symlinked at runtime)

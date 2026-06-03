@@ -95,6 +95,22 @@ if [ ! -L /home/claude/.claude.json ]; then
     ln -s "${PERSIST_DIR}/.claude.json" /home/claude/.claude.json
 fi
 
+# --- Normalize persist-dir ownership to the current claude UID/GID ---
+# The claude UID is pinned in the Dockerfile, but installs created by an older
+# build may have ~/.claude owned by a now-orphaned UID (e.g. 911). Re-own the
+# persisted dir to the current claude user so it can read its credentials and
+# create session-env/ directories. Numeric ids avoid name-resolution surprises.
+# MUST run BEFORE any `s6-setuidgid claude` operations below (e.g. MCP setup),
+# which write into this dir as the claude user.
+CLAUDE_UID="$(id -u claude)"
+CLAUDE_GID="$(id -g claude)"
+CUR_OWNER="$(stat -c '%u:%g' "${PERSIST_DIR}" 2>/dev/null || echo 'unknown')"
+if [ "${CUR_OWNER}" != "${CLAUDE_UID}:${CLAUDE_GID}" ]; then
+    bashio::log.info "Persist dir owned by ${CUR_OWNER}; re-owning to claude (${CLAUDE_UID}:${CLAUDE_GID})..."
+    chown -R "${CLAUDE_UID}:${CLAUDE_GID}" "${PERSIST_DIR}"
+    bashio::log.info "Persist dir ownership normalized to ${CLAUDE_UID}:${CLAUDE_GID}"
+fi
+
 # --- Read add-on options ---
 FONT_SIZE=$(bashio::config 'terminal_font_size')
 THEME=$(bashio::config 'terminal_theme')

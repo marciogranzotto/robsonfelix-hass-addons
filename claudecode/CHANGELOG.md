@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.4.8] - 2026-06-03
+
+### Fixed
+- Fix `EACCES … mkdir … .claude/session-env/…` and `Not logged in` errors caused by a UID mismatch. The `claude` user was created with `adduser -S` without a fixed UID, so it drifted across image rebuilds (e.g. 911 → 100) and orphaned the persisted `~/.claude` (`/homeassistant/.claudecode`), which was still owned by the old UID — making it unreadable/unwritable by the running user
+  - Pin `claude` to a fixed UID/GID (`1000:1000`) in the Dockerfile so ownership survives rebuilds
+  - Add an explicit, early, numeric ownership-normalization of the persist dir at startup (before MCP setup runs as the claude user) to repair already-orphaned installs
+
 ## [1.4.7] - 2026-03-20
 
 ### Added
