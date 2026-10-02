@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.4.11] - 2026-10-02
+
+### Fixed
+- **Add-on failed to start after Claude Code auto-updated to 2.1.288** (`init-claude: command exited 1`, `/root/.claude.json could not be read (EACCES)`). The MCP setup ran `s6-setuidgid claude claude mcp …`, which drops to the `claude` uid but keeps `HOME=/root`; newer Claude Code resolves `~/.claude.json` from `HOME` and fails on root's file, aborting init. The four `claude mcp` calls now run with `env HOME=/home/claude`, the same pattern `ttyd/run` already uses
+
 ## [1.4.10] - 2026-10-02
 
 ### Fixed

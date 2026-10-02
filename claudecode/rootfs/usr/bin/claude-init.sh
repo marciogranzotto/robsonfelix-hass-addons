@@ -186,11 +186,13 @@ if [ -S /var/run/docker.sock ]; then
 fi
 
 # --- Configure MCP servers (as claude user, since settings are in claude's home) ---
-s6-setuidgid claude claude mcp remove homeassistant -s user 2>/dev/null || true
-s6-setuidgid claude claude mcp remove playwright -s user 2>/dev/null || true
+# s6-setuidgid drops the uid but keeps HOME=/root; the claude CLI resolves
+# ~/.claude.json from HOME, so it must be the claude user's home (as in ttyd/run).
+s6-setuidgid claude env HOME=/home/claude claude mcp remove homeassistant -s user 2>/dev/null || true
+s6-setuidgid claude env HOME=/home/claude claude mcp remove playwright -s user 2>/dev/null || true
 
 if [ "${ENABLE_MCP}" = "true" ]; then
-    s6-setuidgid claude claude mcp add-json homeassistant '{"command":"hass-mcp"}' -s user
+    s6-setuidgid claude env HOME=/home/claude claude mcp add-json homeassistant '{"command":"hass-mcp"}' -s user
     SETTINGS_FILE=/home/claude/.claude/settings.json
     ALLOWED_TOOLS='["mcp__homeassistant__get_version","mcp__homeassistant__get_entity","mcp__homeassistant__list_entities","mcp__homeassistant__search_entities_tool","mcp__homeassistant__domain_summary_tool","mcp__homeassistant__list_automations","mcp__homeassistant__get_history","mcp__homeassistant__get_error_log","Read(/homeassistant/**)","Read(/config/**)","Read(/share/**)","Read(/media/**)","Glob(/homeassistant/**)","Glob(/config/**)","Grep(/homeassistant/**)","Grep(/config/**)"]'
     jq --argjson tools "${ALLOWED_TOOLS}" \
@@ -203,7 +205,7 @@ else
 fi
 
 if [ "${ENABLE_PLAYWRIGHT}" = "true" ]; then
-    s6-setuidgid claude claude mcp add-json playwright \
+    s6-setuidgid claude env HOME=/home/claude claude mcp add-json playwright \
         "{\"command\":\"npx\",\"args\":[\"-y\",\"@playwright/mcp\",\"--cdp-endpoint\",\"http://${PLAYWRIGHT_HOST}:9222\"]}" \
         -s user
     bashio::log.info "Playwright MCP enabled (CDP: http://${PLAYWRIGHT_HOST}:9222)"
