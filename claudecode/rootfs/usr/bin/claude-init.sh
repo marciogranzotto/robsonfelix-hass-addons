@@ -304,7 +304,10 @@ chown -R claude:claude /home/claude
 chown -R claude:claude /homeassistant 2>/dev/null || true
 chown -R claude:claude /share 2>/dev/null || true
 chown -R claude:claude /media 2>/dev/null || true
-chown -R claude:claude /addon_configs 2>/dev/null || true
+# Never re-own /addon_configs: it is every other add-on's private state, and
+# several of them (e.g. local_agentos) verify ownership by their own process uid.
+# A recursive chown here silently breaks them on every start of this add-on.
+# Reach it with sudo instead.
 chown -R claude:claude /data 2>/dev/null || true
 
 # Ensure /tmp/claude is owned by claude user (Claude Code uses /tmp/claude/ for sandbox tasks)

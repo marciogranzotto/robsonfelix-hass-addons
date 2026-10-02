@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.4.10] - 2026-10-02
+
+### Fixed
+- **Stop recursively re-owning `/addon_configs` to `claude:claude` on every start.** `all_addon_configs` maps every other add-on's private config directory, and the startup `chown -R claude:claude /addon_configs` re-owned all of them to uid 1000 each time this add-on (re)started. Add-ons that run as root and verify ownership of their own state (the agent-os memoryspren pilot requires its host root, enrollment and transcripts to be owned by its process uid) silently stopped working after the 2026-09-26 restart. This is the same class of bug 1.4.9 fixed in the other direction. Use `sudo` to edit other add-ons' configs; this add-on's own `/data` and persist dir are still normalized
+- Ownership already flipped by earlier versions is not reverted automatically — each affected add-on's owner must restore it
+
 ## [1.4.9] - 2026-06-03
 
 ### Changed
