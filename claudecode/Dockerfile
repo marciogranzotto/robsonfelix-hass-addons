@@ -98,11 +98,10 @@ RUN case "${BUILD_ARCH}" in \
 # Set LD_PRELOAD early — the native installer runs the binary during setup
 ENV LD_PRELOAD="/lib/libgcompat.so.0:/usr/local/lib/posix_getdents_fix.so"
 
-# Install Claude Code (native installer for amd64/aarch64, npm fallback for others)
-# Binary is staged at /root/.local/bin/claude and copied to claude user's path after user creation
+# Install Claude Code via npm where the native installer is unsupported
+# (amd64/aarch64 install natively as the claude user, after user creation)
 RUN case "${BUILD_ARCH}" in \
-        amd64|aarch64) \
-            curl -fsSL https://claude.ai/install.sh | bash ;; \
+        amd64|aarch64) ;; \
         *) \
             npm install -g @anthropic-ai/claude-code ;; \
     esac
@@ -198,13 +197,23 @@ EOF
 # Ensure .bashrc is sourced for login shells too
 RUN echo 'source ~/.bashrc' > /home/claude/.profile
 
-# Copy native Claude binary to claude user's path (staged at /root/.local/bin during install)
-RUN if [ -f /root/.local/bin/claude ]; then \
-        cp /root/.local/bin/claude /home/claude/.local/bin/claude; \
-    fi
-
 # Set ownership of claude home directory
 RUN chown -R claude:claude /home/claude
+
+# Install Claude Code natively (amd64/aarch64) AS the claude user, so
+# ~/.local/bin/claude is the installer's own symlink into
+# ~/.local/share/claude/versions/. The updater refuses to replace a launcher it
+# did not create (e.g. a copied binary), which silently pins the image's version.
+# This copy only seeds the persisted /data/.local on first start (claude-init.sh);
+# nothing else placed in ~/.local here is carried over. ~/.claude is removed
+# because it is symlinked to /data/.claude at runtime.
+USER claude
+RUN case "${BUILD_ARCH}" in \
+        amd64|aarch64) \
+            curl -fsSL https://claude.ai/install.sh | bash && \
+            rm -rf "${HOME}/.claude" "${HOME}/.claude.json" ;; \
+    esac
+USER root
 
 # Set up PATH
 ENV PATH="/home/claude/.local/bin:${PATH}"

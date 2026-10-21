@@ -110,6 +110,35 @@ touch "${PERSIST_DIR}/.claude.json"
 [ -L /home/claude/.claude.json ] || rm -f /home/claude/.claude.json
 ln -sfn "${PERSIST_DIR}/.claude.json" /home/claude/.claude.json
 
+# --- Persist the native Claude Code install ---
+# The native installer keeps versions in ~/.local/share/claude/versions/ and points
+# ~/.local/bin/claude at one of them. The container filesystem is rebuilt on every
+# add-on start, so ~/.local lives in /data like ~/.claude; otherwise every update
+# (`claude update`, the CLI's background updater, the auto-update below) is lost on
+# restart and the version baked into the image runs again.
+LOCAL_PERSIST=/data/.local
+if [ ! -L /home/claude/.local ]; then
+    # Fresh container: /home/claude/.local is still the image's copy. Seed the image's
+    # version only when the persisted install has no working launcher (first start,
+    # or a broken install); otherwise the persisted install is authoritative.
+    PERSIST_TARGET="$(readlink "${LOCAL_PERSIST}/bin/claude" 2>/dev/null || true)"
+    PERSIST_BINARY="${LOCAL_PERSIST}/share/claude/versions/${PERSIST_TARGET##*/}"
+    if [ -L /home/claude/.local/bin/claude ] && ! { [ -f "${PERSIST_BINARY}" ] && [ -x "${PERSIST_BINARY}" ]; }; then
+        IMAGE_BINARY="$(readlink -f /home/claude/.local/bin/claude)"
+        IMAGE_VERSION="${IMAGE_BINARY##*/}"
+        bashio::log.info "Seeding Claude Code ${IMAGE_VERSION} from the image into ${LOCAL_PERSIST}..."
+        mkdir -p "${LOCAL_PERSIST}/bin" "${LOCAL_PERSIST}/share/claude/versions"
+        cp -p "${IMAGE_BINARY}" "${LOCAL_PERSIST}/share/claude/versions/${IMAGE_VERSION}"
+        # Same absolute target the installer writes, so it still owns the launcher
+        ln -sfn "/home/claude/.local/share/claude/versions/${IMAGE_VERSION}" "${LOCAL_PERSIST}/bin/claude"
+        # The claude user updates this install below, before the final ownership pass
+        chown -R claude:claude "${LOCAL_PERSIST}"
+    fi
+    rm -rf /home/claude/.local
+fi
+mkdir -p "${LOCAL_PERSIST}"
+ln -sfn "${LOCAL_PERSIST}" /home/claude/.local
+
 # --- Normalize persist-dir ownership to the current claude UID/GID ---
 # Freshly migrated data (cp -a preserves the foreign uid, e.g. 911 from a
 # LinuxServer.io add-on) and installs from an older build may be owned by a
@@ -167,9 +196,9 @@ AUTO_UPDATE=$(bashio::config 'auto_update_claude')
 if [ "${AUTO_UPDATE}" = "true" ]; then
     bashio::log.info "Checking for Claude Code updates..."
     if [ -f /home/claude/.local/bin/claude ]; then
-        # Native install: re-run installer with HOME=/home/claude so paths stay consistent
-        HOME=/home/claude curl -fsSL https://claude.ai/install.sh | HOME=/home/claude bash 2>/dev/null \
-            && chown claude:claude /home/claude/.local/bin/claude \
+        # Native install: update as the claude user, so everything the installer
+        # writes under the persisted ~/.local stays owned by the user who runs it
+        s6-setuidgid claude env HOME=/home/claude /home/claude/.local/bin/claude update \
             || bashio::log.warning "Update check failed, continuing..."
     else
         # npm install: use npm update
@@ -191,10 +220,20 @@ fi
 s6-setuidgid claude env HOME=/home/claude claude mcp remove homeassistant -s user 2>/dev/null || true
 s6-setuidgid claude env HOME=/home/claude claude mcp remove playwright -s user 2>/dev/null || true
 
+SETTINGS_FILE=/home/claude/.claude/settings.json
+# Add-on versions up to 1.4.11 pre-authorized Glob(path) rules. Claude Code does not
+# match those in file permission checks (the Read(path) rules already cover Glob) and
+# warns about each one on every launch, so remove them whether or not MCP is enabled.
+LEGACY_ALLOWED_TOOLS='["Glob(/homeassistant/**)","Glob(/config/**)"]'
+if [ -f "${SETTINGS_FILE}" ]; then
+    jq --argjson legacy "${LEGACY_ALLOWED_TOOLS}" \
+        'if .permissions.allow then .permissions.allow -= $legacy else . end' \
+        "${SETTINGS_FILE}" > /tmp/settings.tmp && [ -s /tmp/settings.tmp ] && mv /tmp/settings.tmp "${SETTINGS_FILE}"
+fi
+
 if [ "${ENABLE_MCP}" = "true" ]; then
     s6-setuidgid claude env HOME=/home/claude claude mcp add-json homeassistant '{"command":"hass-mcp"}' -s user
-    SETTINGS_FILE=/home/claude/.claude/settings.json
-    ALLOWED_TOOLS='["mcp__homeassistant__get_version","mcp__homeassistant__get_entity","mcp__homeassistant__list_entities","mcp__homeassistant__search_entities_tool","mcp__homeassistant__domain_summary_tool","mcp__homeassistant__list_automations","mcp__homeassistant__get_history","mcp__homeassistant__get_error_log","Read(/homeassistant/**)","Read(/config/**)","Read(/share/**)","Read(/media/**)","Glob(/homeassistant/**)","Glob(/config/**)","Grep(/homeassistant/**)","Grep(/config/**)"]'
+    ALLOWED_TOOLS='["mcp__homeassistant__get_version","mcp__homeassistant__get_entity","mcp__homeassistant__list_entities","mcp__homeassistant__search_entities_tool","mcp__homeassistant__domain_summary_tool","mcp__homeassistant__list_automations","mcp__homeassistant__get_history","mcp__homeassistant__get_error_log","Read(/homeassistant/**)","Read(/config/**)","Read(/share/**)","Read(/media/**)","Grep(/homeassistant/**)","Grep(/config/**)"]'
     jq --argjson tools "${ALLOWED_TOOLS}" \
         '.permissions.allow = ($tools + (.permissions.allow // []) | unique)' \
         "${SETTINGS_FILE}" > /tmp/settings.tmp && [ -s /tmp/settings.tmp ] && mv /tmp/settings.tmp "${SETTINGS_FILE}"

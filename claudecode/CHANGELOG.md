@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.4.12] - 2026-10-21
+
+### Fixed
+- **Claude Code updates never took effect** (`claude update` reported "Successfully updated from 2.1.288 to 2.1.305", then `claude --version` still said 2.1.288). The Dockerfile installed Claude as root and `cp`'d the binary into `/home/claude/.local/bin/claude`, which dereferenced the installer's symlink into a plain file. Current Claude Code refuses to replace a launcher that is not its own symlink into `claude/versions/` ("was not created by the native installer … so auto-update leaves it untouched"), so `claude update`, the CLI's background updater and the add-on's startup auto-update all downloaded new versions that nothing ever ran, and version cleanup was disabled. The startup auto-update hid the warning behind `2>/dev/null`
+  - Install Claude Code natively as the `claude` user, so `~/.local/bin/claude` is the installer's own symlink
+  - Persist `~/.local` in the add-on's private `/data` volume (`/data/.local`), like `~/.claude`. The container filesystem is rebuilt on every add-on start, so updates were also lost on restart. The image's version only seeds `/data/.local` when it has no working launcher (first start, or a broken install); after that the persisted install is authoritative and the updater manages it
+  - The startup auto-update now runs `claude update` as the `claude` user and logs its output instead of piping `install.sh` into a root shell with stderr discarded
+- **"Permission allow rule … Glob(/homeassistant/\*\*) is not matched by file permission checks" warnings on every launch.** The add-on pre-authorized `Glob(/homeassistant/**)` and `Glob(/config/**)`, which Claude Code ignores for file permission checks (the `Read(...)` rules it also adds already cover Glob). They are no longer added, and the ones earlier versions wrote to `settings.json` are removed on start
+
 ## [1.4.11] - 2026-10-02
 
 ### Fixed
